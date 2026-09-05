@@ -1,0 +1,523 @@
+# 🌷 Bouquet Garden — Minimum Days to Make Bouquets
+
+## Problem Statement
+
+You have `N` flowers planted in a row.
+
+The `i-th` flower blooms on day:
+
+```text
+bloomDay[i]
+```
+
+You need to make exactly **`m` bouquets**.
+
+Each bouquet requires **`k adjacent flowers** that have already bloomed.
+
+### Important Rules
+
+* A flower can be used **only once**.
+* The `k` flowers used for a bouquet must be **adjacent**.
+* A flower can only be used after it has bloomed.
+* Find the **minimum number of days** needed to make `m` bouquets.
+* If it is impossible, return `-1`.
+
+---
+
+## Example
+
+Suppose:
+
+```text
+bloomDay = [1, 10, 3, 10, 2]
+m = 3
+k = 1
+```
+
+After `3` days:
+
+```text
+[🌷, _, 🌷, _, 🌷]
+```
+
+The flowers that bloomed are at positions:
+
+```text
+1, 3, 5
+```
+
+Since each bouquet requires only `1` flower, we can make `3` bouquets.
+
+Therefore:
+
+```text
+Answer = 3
+```
+
+---
+
+# Key Observation
+
+We need to find the **minimum number of days**.
+
+Instead of checking every day one by one, we can use **Binary Search on Answer**.
+
+For a particular day `D`, we can ask:
+
+> Can we make at least `m` bouquets using the flowers that have bloomed by day `D`?
+
+This is a **yes/no** question.
+
+If we can make the bouquets in `D` days, then we can also make them in any day greater than `D`.
+
+Therefore, the condition is **monotonic**.
+
+```text
+Days:       1   2   3   4   5   6   ...
+Possible:   ❌  ❌  ✅  ✅  ✅  ✅  ...
+                    ↑
+              Minimum day
+```
+
+This makes Binary Search a perfect choice.
+
+---
+
+# Important Impossibility Check
+
+Each bouquet needs `k` flowers.
+
+For `m` bouquets, we need:
+
+```text
+m × k
+```
+
+flowers.
+
+If:
+
+```text
+m × k > N
+```
+
+then it is impossible to make all bouquets.
+
+Return:
+
+```text
+-1
+```
+
+For example:
+
+```text
+N = 5
+m = 3
+k = 2
+```
+
+Required flowers:
+
+```text
+3 × 2 = 6
+```
+
+But there are only `5` flowers.
+
+Therefore:
+
+```text
+Answer = -1
+```
+
+---
+
+# How to Check a Day?
+
+Suppose we want to check whether we can make `m` bouquets by day `D`.
+
+A flower is available if:
+
+```text
+bloomDay[i] <= D
+```
+
+We scan the flowers from left to right.
+
+Maintain:
+
+```text
+consecutive = number of consecutive bloomed flowers
+```
+
+If a flower has bloomed:
+
+```text
+consecutive += 1
+```
+
+When:
+
+```text
+consecutive == k
+```
+
+we can make one bouquet.
+
+Then reset:
+
+```text
+consecutive = 0
+```
+
+This is important because **a flower can only be used once**.
+
+If a flower has not bloomed:
+
+```text
+consecutive = 0
+```
+
+because the adjacency chain is broken.
+
+---
+
+# Algorithm
+
+1. If `m × k > N`, return `-1`.
+2. Set:
+
+   ```text
+   low = min(bloomDay)
+   high = max(bloomDay)
+   ```
+3. Binary search between `low` and `high`.
+4. For each `mid` day:
+
+   * Scan the flowers.
+   * Count consecutive bloomed flowers.
+   * Whenever `k` consecutive flowers are available, create a bouquet.
+   * If at least `m` bouquets can be created, `mid` is valid.
+5. If `mid` is valid:
+
+   * Store it as the answer.
+   * Search for an earlier day.
+6. Otherwise:
+
+   * Search for a later day.
+7. Return the minimum valid day.
+
+---
+
+# Python Solution
+
+```python
+def can_make_bouquets(bloomDay, m, k, day):
+    bouquets = 0
+    consecutive = 0
+
+    for bloom in bloomDay:
+        if bloom <= day:
+            # Flower has bloomed
+            consecutive += 1
+
+            # We have enough adjacent flowers
+            if consecutive == k:
+                bouquets += 1
+                consecutive = 0
+
+                # We already have enough bouquets
+                if bouquets >= m:
+                    return True
+        else:
+            # Adjacency is broken
+            consecutive = 0
+
+    return False
+
+
+def minDays(bloomDay, m, k):
+    n = len(bloomDay)
+
+    # Not enough flowers in total
+    if m * k > n:
+        return -1
+
+    low = min(bloomDay)
+    high = max(bloomDay)
+
+    answer = -1
+
+    while low <= high:
+        mid = (low + high) // 2
+
+        if can_make_bouquets(bloomDay, m, k, mid):
+            # This day works
+            answer = mid
+            high = mid - 1
+        else:
+            # Need more time
+            low = mid + 1
+
+    return answer
+
+
+# Input
+N, m, k = map(int, input().split())
+bloomDay = list(map(int, input().split()))
+
+# Output
+print(minDays(bloomDay, m, k))
+```
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+N = 5
+m = 3
+k = 1
+
+bloomDay = [1, 10, 3, 10, 2]
+```
+
+We need:
+
+```text
+3 bouquets
+```
+
+with:
+
+```text
+1 flower per bouquet
+```
+
+So:
+
+```text
+m × k = 3 × 1 = 3
+```
+
+We have enough flowers.
+
+---
+
+### Check Day = 5
+
+Flowers that have bloomed:
+
+```text
+[1, 10, 3, 10, 2]
+ ↓       ↓       ↓
+ 🌷      🌷      🌷
+```
+
+Available flowers:
+
+```text
+[🌷, _, 🌷, _, 🌷]
+```
+
+Since `k = 1`, each flower can make one bouquet.
+
+Therefore:
+
+```text
+3 bouquets
+```
+
+can be made.
+
+So day `5` works.
+
+We try an earlier day.
+
+---
+
+### Check Day = 3
+
+Available flowers:
+
+```text
+[🌷, _, 🌷, _, 🌷]
+```
+
+Again, we can make:
+
+```text
+3 bouquets
+```
+
+Therefore day `3` works.
+
+---
+
+### Check Day = 2
+
+Available flowers:
+
+```text
+[🌷, _, _, _, 🌷]
+```
+
+Only `2` flowers have bloomed.
+
+We need `3` bouquets.
+
+Therefore day `2` does not work.
+
+So the minimum valid day is:
+
+```text
+3
+```
+
+---
+
+# Example 1
+
+### Input
+
+```text
+5 3 1
+1 10 3 10 2
+```
+
+### Output
+
+```text
+3
+```
+
+---
+
+# Example 2
+
+### Input
+
+```text
+5 3 2
+1 10 3 10 2
+```
+
+### Output
+
+```text
+-1
+```
+
+### Why?
+
+Each bouquet requires `2` flowers.
+
+We need:
+
+```text
+3 × 2 = 6 flowers
+```
+
+But there are only:
+
+```text
+5 flowers
+```
+
+Therefore, making `3` bouquets is impossible.
+
+---
+
+# Complexity
+
+Let:
+
+* `N` = number of flowers
+* `D` = range of possible bloom days
+
+For every binary-search step, we scan all `N` flowers.
+
+### Time Complexity
+
+```text
+O(N × log D)
+```
+
+More precisely:
+
+```text
+O(N × log(max(bloomDay) - min(bloomDay)))
+```
+
+### Space Complexity
+
+```text
+O(1)
+```
+
+Only a few variables are used.
+
+---
+
+# Why Binary Search?
+
+The most important idea is **Binary Search on Answer**.
+
+We are searching for the smallest day that satisfies:
+
+```text
+Can we make m bouquets?
+```
+
+The answer follows this pattern:
+
+```text
+Day
+ ↓
+1   2   3   4   5   6   7
+❌  ❌  ✅  ✅  ✅  ✅  ✅
+        ↑
+    Minimum day
+```
+
+Once a day works, every later day also works.
+
+Therefore, we can discard half of the possible days at every step.
+
+---
+
+# Key Takeaway
+
+This problem is a classic example of:
+
+```text
+Binary Search on Answer
+        +
+Greedy Checking
+        +
+Adjacent Elements
+```
+
+The general pattern is:
+
+```text
+Possible Answer Range
+        ↓
+    Binary Search
+        ↓
+    Check(mid)
+       /    \
+     Yes     No
+      ↓       ↓
+ Search     Search
+ left       right
+        ↓
+Minimum Valid Answer
+```
+
+### Remember
+
+> When the question asks for the **minimum value** that satisfies a **monotonic condition**, consider **Binary Search on Answer**.
