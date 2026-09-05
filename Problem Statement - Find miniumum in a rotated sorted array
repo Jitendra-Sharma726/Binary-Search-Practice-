@@ -1,0 +1,656 @@
+# Find Minimum in a Rotated Sorted Array
+
+## Problem Statement
+
+You are given an array that was originally sorted in **increasing order**, but it has been rotated some number of times.
+
+All elements in the array are **distinct**.
+
+Your task is to find the **smallest element** in the rotated sorted array.
+
+The solution must run in:
+
+```text
+O(log n)
+```
+
+---
+
+## What is a Rotated Sorted Array?
+
+Consider the sorted array:
+
+```text
+[1, 2, 3, 4, 5, 6, 7]
+```
+
+After rotating it 3 times:
+
+```text
+[5, 6, 7, 1, 2, 3, 4]
+```
+
+The smallest element is:
+
+```text
+1
+```
+
+Another example:
+
+```text
+[12, 15, 18, 2, 5, 8]
+```
+
+The smallest element is:
+
+```text
+2
+```
+
+---
+
+## Input Format
+
+The first line contains an integer `T`, the number of test cases.
+
+For each test case:
+
+* The first line contains an integer `N`, the size of the array.
+* The second line contains `N` space-separated integers representing the rotated sorted array.
+
+---
+
+## Output Format
+
+For each test case, print the smallest element in the array.
+
+---
+
+## Constraints
+
+* `1 ≤ T ≤ 100`
+* `1 ≤ N ≤ 10^5`
+* `-10^4 ≤ nums[i] ≤ 10^4`
+* All elements are unique.
+* The array is guaranteed to be a rotated version of a sorted array.
+
+---
+
+# Examples
+
+## Example 1
+
+### Input
+
+```text
+3
+8
+7 8 1 2 3 4 5 6
+6
+12 15 18 2 5 8
+6
+3 4 5 6 1 2
+```
+
+### Output
+
+```text
+1
+2
+1
+```
+
+---
+
+# Explanation
+
+### Example 1
+
+```text
+[7, 8, 1, 2, 3, 4, 5, 6]
+```
+
+The array was originally:
+
+```text
+[1, 2, 3, 4, 5, 6, 7, 8]
+```
+
+The rotation point is between `8` and `1`.
+
+Therefore:
+
+```text
+Minimum = 1
+```
+
+---
+
+### Example 2
+
+```text
+[12, 15, 18, 2, 5, 8]
+```
+
+The sorted portions are:
+
+```text
+[12, 15, 18]
+[2, 5, 8]
+```
+
+The smallest element is:
+
+```text
+2
+```
+
+---
+
+### Example 3
+
+```text
+[3, 4, 5, 6, 1, 2]
+```
+
+The rotation point is between:
+
+```text
+6 → 1
+```
+
+Therefore:
+
+```text
+Minimum = 1
+```
+
+---
+
+# Approach
+
+A normal linear search would take:
+
+```text
+O(n)
+```
+
+But the problem requires:
+
+```text
+O(log n)
+```
+
+So we use **Binary Search**.
+
+---
+
+# Binary Search Idea
+
+In a rotated sorted array, there are usually two sorted parts.
+
+For example:
+
+```text
+[4, 5, 6, 7, 0, 1, 2]
+```
+
+We want to find where the rotation happened.
+
+The key observation is to compare the middle element with the rightmost element.
+
+Let:
+
+```text
+left = 0
+right = n - 1
+```
+
+Calculate:
+
+```text
+mid = (left + right) // 2
+```
+
+Then compare:
+
+```text
+nums[mid] and nums[right]
+```
+
+---
+
+## Case 1: `nums[mid] > nums[right]`
+
+Example:
+
+```text
+[4, 5, 6, 7, 0, 1, 2]
+          ↑     ↑
+         mid   right
+```
+
+Here:
+
+```text
+nums[mid] = 7
+nums[right] = 2
+```
+
+Since:
+
+```text
+7 > 2
+```
+
+the minimum must be **to the right of `mid`**.
+
+Therefore:
+
+```python
+left = mid + 1
+```
+
+---
+
+## Case 2: `nums[mid] <= nums[right]`
+
+Example:
+
+```text
+[4, 5, 6, 7, 0, 1, 2]
+      ↑           ↑
+     mid         right
+```
+
+If:
+
+```text
+nums[mid] <= nums[right]
+```
+
+then the right side is sorted, and the minimum could be at `mid` or somewhere to its left.
+
+Therefore:
+
+```python
+right = mid
+```
+
+Notice that we use:
+
+```python
+right = mid
+```
+
+instead of:
+
+```python
+right = mid - 1
+```
+
+because `mid` itself could be the minimum.
+
+---
+
+# Algorithm
+
+1. Set:
+
+   ```text
+   left = 0
+   right = n - 1
+   ```
+2. While `left < right`:
+
+   * Calculate:
+
+     ```text
+     mid = (left + right) // 2
+     ```
+   * If:
+
+     ```text
+     nums[mid] > nums[right]
+     ```
+
+     then:
+
+     ```text
+     left = mid + 1
+     ```
+   * Otherwise:
+
+     ```text
+     right = mid
+     ```
+3. When:
+
+   ```text
+   left == right
+   ```
+
+   the minimum element is:
+
+   ```text
+   nums[left]
+   ```
+4. Return `nums[left]`.
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+nums = [4, 5, 6, 7, 0, 1, 2]
+```
+
+### Step 1
+
+```text
+left = 0
+right = 6
+mid = 3
+```
+
+Values:
+
+```text
+nums[mid] = 7
+nums[right] = 2
+```
+
+Since:
+
+```text
+7 > 2
+```
+
+minimum is on the right.
+
+```text
+left = 4
+```
+
+---
+
+### Step 2
+
+```text
+left = 4
+right = 6
+mid = 5
+```
+
+Values:
+
+```text
+nums[mid] = 1
+nums[right] = 2
+```
+
+Since:
+
+```text
+1 <= 2
+```
+
+minimum can be at `mid` or to the left.
+
+```text
+right = 5
+```
+
+---
+
+### Step 3
+
+```text
+left = 4
+right = 5
+mid = 4
+```
+
+Values:
+
+```text
+nums[mid] = 0
+nums[right] = 1
+```
+
+Since:
+
+```text
+0 <= 1
+```
+
+move `right` to `mid`:
+
+```text
+right = 4
+```
+
+Now:
+
+```text
+left = right = 4
+```
+
+Therefore:
+
+```text
+nums[4] = 0
+```
+
+### Answer
+
+```text
+0
+```
+
+---
+
+# Python Solution
+
+```python
+def find_min(nums):
+    left = 0
+    right = len(nums) - 1
+
+    while left < right:
+        mid = (left + right) // 2
+
+        if nums[mid] > nums[right]:
+            # Minimum is on the right side
+            left = mid + 1
+        else:
+            # Minimum is at mid or on the left side
+            right = mid
+
+    return nums[left]
+
+
+# Input
+T = int(input())
+
+for _ in range(T):
+    N = int(input())
+    nums = list(map(int, input().split()))
+
+    print(find_min(nums))
+```
+
+---
+
+# Why Does This Work?
+
+The array is originally sorted.
+
+After rotation, it looks like:
+
+```text
+[larger values ... larger values | smaller values ... smaller values]
+```
+
+For example:
+
+```text
+[5, 6, 7, 1, 2, 3, 4]
+```
+
+The minimum is exactly at the **rotation point**.
+
+Binary Search allows us to determine which side contains that rotation point.
+
+The comparison:
+
+```python
+nums[mid] > nums[right]
+```
+
+tells us whether `mid` is in the left, larger sorted portion or the right, smaller sorted portion.
+
+Therefore, every iteration eliminates roughly half of the search space.
+
+---
+
+# Complexity Analysis
+
+### Time Complexity
+
+Each iteration removes approximately half of the remaining elements.
+
+```text
+O(log N)
+```
+
+### Space Complexity
+
+We only use a few variables:
+
+```text
+O(1)
+```
+
+---
+
+# Important Edge Cases
+
+### 1. Array with One Element
+
+```text
+[5]
+```
+
+Answer:
+
+```text
+5
+```
+
+---
+
+### 2. Already Sorted Array
+
+```text
+[1, 2, 3, 4, 5]
+```
+
+The minimum is:
+
+```text
+1
+```
+
+The algorithm still works.
+
+---
+
+### 3. Minimum at the Last Position
+
+```text
+[2, 3, 4, 5, 1]
+```
+
+Answer:
+
+```text
+1
+```
+
+---
+
+### 4. Minimum at the First Position
+
+```text
+[1, 2, 3, 4, 5]
+```
+
+Answer:
+
+```text
+1
+```
+
+---
+
+# Key Insight
+
+The most important condition to remember is:
+
+```python
+if nums[mid] > nums[right]:
+    left = mid + 1
+else:
+    right = mid
+```
+
+Why?
+
+Because:
+
+* `nums[mid] > nums[right]` → minimum is definitely **after `mid`**.
+* `nums[mid] <= nums[right]` → minimum is **at `mid` or before it**.
+
+Finally:
+
+```python
+left == right
+```
+
+points directly to the minimum element.
+
+---
+
+# Pattern to Remember
+
+This is a classic **Binary Search on a Rotated Sorted Array** problem.
+
+The general pattern is:
+
+```python
+left = 0
+right = len(nums) - 1
+
+while left < right:
+    mid = (left + right) // 2
+
+    if nums[mid] > nums[right]:
+        left = mid + 1
+    else:
+        right = mid
+
+return nums[left]
+```
+
+### Complexity
+
+```text
+Time  : O(log N)
+Space : O(1)
+```
+
+This pattern is useful whenever you need to locate the **minimum/rotation point** in a sorted array that has been rotated.
