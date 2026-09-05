@@ -1,0 +1,52 @@
+import sys
+
+def countLessOrEqual(matrix, n, target):
+    count = 0
+    row = 0
+    col = n - 1
+    
+    # Traverse from the top-right corner downwards/leftwards
+    while row < n and col >= 0:
+        if matrix[row][col] <= target:
+            count += col + 1  # All elements to the left in this row are <= target
+            row += 1          # Move to the next row
+        else:
+            col -= 1          # Move left to find smaller elements
+            
+    return count
+
+def solve():
+    # Fast I/O to read inputs efficiently
+    input_data = sys.stdin.read().split()
+    if not input_data:
+        return
+        
+    iterator = iter(input_data)
+    
+    n = int(next(iterator))
+    k = int(next(iterator))
+    
+    # Construct the matrix row by row
+    matrix = []
+    for _ in range(n):
+        row = [int(next(iterator)) for _ in range(n)]
+        matrix.append(row)
+        
+    # Define Binary Search boundaries based on constraints and matrix bounds
+    low = matrix[0][0]
+    high = matrix[n-1][n-1]
+    
+    result = low
+    while low <= high:
+        mid = (low + high) // 2
+        
+        if countLessOrEqual(matrix, n, mid) >= k:
+            result = mid      # mid could be the answer, but look for a smaller valid value
+            high = mid - 1
+        else:
+            low = mid + 1     # mid is too small, increase the search space
+            
+    print(result)
+
+if __name__ == '__main__':
+    solve()
