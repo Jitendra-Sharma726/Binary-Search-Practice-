@@ -1,0 +1,66 @@
+import sys
+
+def canDeliver(weights, capacity, max_days):
+    days_used = 1
+    current_load = 0
+    
+    for weight in weights:
+        if current_load + weight > capacity:
+            # Move to the next day and reset the truck's current load
+            days_used += 1
+            current_load = weight
+            
+            # Early exit if we exceed the allowed timeframe
+            if days_used > max_days:
+                return False
+        else:
+            current_load += weight
+            
+    return days_used <= max_days
+
+def shipWithinDays(weights, max_days):
+    # The truck must be at least as strong as the heaviest item
+    low = max(weights)
+    # The absolute upper limit is carrying everything at once
+    high = sum(weights)
+    ans = high
+    
+    while low <= high:
+        mid = (low + high) // 2
+        
+        if canDeliver(weights, mid, max_days):
+            ans = mid        # mid works! Let's check if a smaller capacity works
+            high = mid - 1
+        else:
+            low = mid + 1    # mid is too small, we need a larger capacity
+            
+    return ans
+
+def solve():
+    # Fast I/O: parsing tokens directly to avoid input multi-line failures
+    input_data = sys.stdin.read().split()
+    if not input_data:
+        return
+        
+    iterator = iter(input_data)
+    
+    # Read number of test cases
+    t = int(next(iterator))
+    
+    out = []
+    for _ in range(t):
+        n = int(next(iterator))
+        days = int(next(iterator))
+        
+        # Read all N container weights
+        weights = [int(next(iterator)) for _ in range(n)]
+        
+        # Find minimum truck capacity and capture the result
+        result = shipWithinDays(weights, days)
+        out.append(str(result))
+        
+    # Output all answers efficiently
+    sys.stdout.write('\n'.join(out) + '\n')
+
+if __name__ == '__main__':
+    solve()
