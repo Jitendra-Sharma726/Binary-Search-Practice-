@@ -1,0 +1,599 @@
+# Painter Partition Problem
+
+## Problem Statement
+
+You are given `N` boards of different lengths and `k` painters.
+
+Each painter:
+
+* Paints at the same speed.
+* Takes **1 unit of time to paint 1 unit of board length**.
+* Can only paint a **contiguous group of boards**.
+* Each board must be painted by exactly one painter.
+
+Your goal is to divide the boards among the `k` painters such that:
+
+> The **maximum amount of work assigned to any painter is as small as possible**.
+
+Return this minimum possible time.
+
+---
+
+## Example
+
+Suppose we have:
+
+```text
+Boards = [10, 20, 30, 40]
+Painters = 2
+```
+
+One optimal division is:
+
+```text
+Painter 1 → [10, 20, 30] = 60
+Painter 2 → [40] = 40
+```
+
+The maximum time is:
+
+```text
+max(60, 40) = 60
+```
+
+So the answer is:
+
+```text
+60
+```
+
+---
+
+## Input Format
+
+The first line contains an integer `T`, the number of test cases.
+
+For each test case:
+
+* The first line contains two integers:
+
+  * `N` — number of boards
+  * `k` — number of painters
+* The second line contains `N` space-separated integers representing board lengths.
+
+---
+
+## Output Format
+
+For each test case, print one integer:
+
+> The minimum possible time required to paint all boards.
+
+---
+
+## Constraints
+
+* `1 ≤ T ≤ 100`
+* `1 ≤ N ≤ 10^5`
+* `1 ≤ k ≤ N`
+* `1 ≤ a[i] ≤ 10^5`
+
+---
+
+# Examples
+
+## Example 1
+
+### Input
+
+```text
+3
+4 2
+10 20 30 40
+5 3
+10 10 10 10 10
+6 1
+5 10 15 20 25 30
+```
+
+### Output
+
+```text
+60
+20
+105
+```
+
+---
+
+## Explanation
+
+### Test Case 1
+
+```text
+Boards = [10, 20, 30, 40]
+Painters = 2
+```
+
+Optimal partition:
+
+```text
+Painter 1 → [10, 20, 30] = 60
+Painter 2 → [40] = 40
+```
+
+Maximum workload:
+
+```text
+max(60, 40) = 60
+```
+
+Answer:
+
+```text
+60
+```
+
+---
+
+### Test Case 2
+
+```text
+Boards = [10, 10, 10, 10, 10]
+Painters = 3
+```
+
+One optimal partition is:
+
+```text
+Painter 1 → [10, 10] = 20
+Painter 2 → [10, 10] = 20
+Painter 3 → [10] = 10
+```
+
+Maximum workload:
+
+```text
+20
+```
+
+Answer:
+
+```text
+20
+```
+
+---
+
+### Test Case 3
+
+```text
+Boards = [5, 10, 15, 20, 25, 30]
+Painters = 1
+```
+
+There is only one painter, so they must paint everything:
+
+```text
+5 + 10 + 15 + 20 + 25 + 30 = 105
+```
+
+Answer:
+
+```text
+105
+```
+
+---
+
+# Approach
+
+This problem is a classic example of **Binary Search on Answer**.
+
+We are not searching for an element in the array.
+
+Instead, we are searching for the **minimum possible maximum workload**.
+
+---
+
+## Step 1: Find the Search Range
+
+What is the minimum possible maximum workload?
+
+At least one painter must paint the longest board.
+
+Therefore:
+
+```text
+low = max(boards)
+```
+
+What is the maximum possible workload?
+
+If one painter paints all boards:
+
+```text
+high = sum(boards)
+```
+
+So our answer must lie between:
+
+```text
+max(boards) ≤ answer ≤ sum(boards)
+```
+
+---
+
+# Step 2: Check if a Maximum Workload is Possible
+
+Suppose we guess:
+
+```text
+max_work = 60
+```
+
+We need to check whether all boards can be divided among at most `k` painters such that no painter gets more than `60` total length.
+
+We process the boards from left to right.
+
+For each board:
+
+* Add it to the current painter if possible.
+* If adding it would exceed `max_work`, assign the board to the next painter.
+
+Example:
+
+```text
+Boards = [10, 20, 30, 40]
+max_work = 60
+```
+
+Process:
+
+```text
+Painter 1:
+10 + 20 + 30 = 60
+
+Painter 2:
+40
+```
+
+We need only `2` painters.
+
+If `k = 2`, then `60` is possible.
+
+---
+
+# Step 3: Binary Search
+
+If a workload of `60` is possible, maybe an even smaller value is possible.
+
+So:
+
+```text
+high = mid
+```
+
+If a workload of `60` is not possible, we need to allow more work per painter.
+
+So:
+
+```text
+low = mid + 1
+```
+
+Continue until:
+
+```text
+low == high
+```
+
+That value is the minimum possible maximum workload.
+
+---
+
+# Algorithm
+
+For each test case:
+
+1. Read the board lengths.
+2. Set:
+
+   ```text
+   low = max(boards)
+   high = sum(boards)
+   ```
+3. While `low < high`:
+
+   * Calculate:
+
+     ```text
+     mid = (low + high) // 2
+     ```
+   * Check how many painters are required if no painter can paint more than `mid`.
+   * If required painters `<= k`:
+
+     * `mid` is possible.
+     * Search for a smaller answer:
+
+       ```text
+       high = mid
+       ```
+   * Otherwise:
+
+     ```text
+     low = mid + 1
+     ```
+4. Return `low`.
+
+---
+
+# Python Solution
+
+```python
+def can_paint(boards, k, max_work):
+    painters = 1
+    current_work = 0
+
+    for board in boards:
+
+        # A single board cannot fit
+        if board > max_work:
+            return False
+
+        if current_work + board <= max_work:
+            current_work += board
+        else:
+            painters += 1
+            current_work = board
+
+            if painters > k:
+                return False
+
+    return True
+
+
+def painter_partition(boards, k):
+    low = max(boards)
+    high = sum(boards)
+
+    while low < high:
+        mid = (low + high) // 2
+
+        if can_paint(boards, k, mid):
+            # Possible, try a smaller maximum workload
+            high = mid
+        else:
+            # Not possible, need a larger workload
+            low = mid + 1
+
+    return low
+
+
+# Input
+T = int(input())
+
+for _ in range(T):
+    N, k = map(int, input().split())
+    boards = list(map(int, input().split()))
+
+    print(painter_partition(boards, k))
+```
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+Boards = [10, 20, 30, 40]
+k = 2
+```
+
+Search range:
+
+```text
+low = max(10, 20, 30, 40) = 40
+high = 10 + 20 + 30 + 40 = 100
+```
+
+So:
+
+```text
+40 ≤ answer ≤ 100
+```
+
+### Try `mid = 70`
+
+Can we use at most 2 painters?
+
+```text
+Painter 1 → 10 + 20 + 30 = 60
+Painter 2 → 40
+```
+
+Yes.
+
+Therefore:
+
+```text
+high = 70
+```
+
+---
+
+### Try `mid = 55`
+
+```text
+Painter 1 → 10 + 20 = 30
+Painter 2 → 30
+```
+
+But the `40` board still needs another painter:
+
+```text
+Painter 3 → 40
+```
+
+We need 3 painters.
+
+Since:
+
+```text
+3 > 2
+```
+
+`55` is not possible.
+
+Therefore:
+
+```text
+low = 56
+```
+
+Binary Search continues until:
+
+```text
+low = high = 60
+```
+
+Therefore:
+
+```text
+Answer = 60
+```
+
+---
+
+# Why Greedy Works for the Check
+
+When checking whether a maximum workload `X` is possible, we assign boards from left to right.
+
+We keep adding boards to the current painter until adding another board would exceed `X`.
+
+At that point, we start a new painter.
+
+This greedy strategy uses the **minimum number of painters** required for that value of `X`.
+
+Therefore:
+
+* If greedy needs `≤ k` painters → `X` is possible.
+* If greedy needs `> k` painters → `X` is impossible.
+
+This gives us the monotonic property required for Binary Search.
+
+---
+
+# Complexity Analysis
+
+Let:
+
+* `N` = number of boards
+* `S` = sum of all board lengths
+
+For each Binary Search step, we scan all boards:
+
+```text
+O(N)
+```
+
+The search range is from:
+
+```text
+max(board)
+```
+
+to:
+
+```text
+sum(board)
+```
+
+So there are approximately:
+
+```text
+O(log S)
+```
+
+binary search steps.
+
+### Time Complexity
+
+```text
+O(N log S)
+```
+
+### Space Complexity
+
+```text
+O(1)
+```
+
+excluding the input array.
+
+---
+
+# Key Insight
+
+The important trick is to **binary search the answer instead of the array**.
+
+We know:
+
+```text
+Minimum answer = largest board
+Maximum answer = sum of all boards
+```
+
+For any guessed value `X`, we can efficiently check:
+
+> Can `k` painters paint all boards if no painter is allowed to paint more than `X` length?
+
+This creates a monotonic condition:
+
+```text
+Impossible → Impossible → Possible → Possible
+```
+
+Binary Search finds the **first possible value**.
+
+---
+
+# Pattern to Remember
+
+Whenever you see a problem asking:
+
+> **Minimize the maximum value**
+
+and you can efficiently check whether a particular maximum value is possible, think:
+
+```text
+Binary Search on Answer
+```
+
+Typical structure:
+
+```python
+low = minimum_possible_answer
+high = maximum_possible_answer
+
+while low < high:
+    mid = (low + high) // 2
+
+    if is_possible(mid):
+        high = mid
+    else:
+        low = mid + 1
+
+return low
+```
+
+This pattern is useful for:
+
+* Painter Partition
+* Book Allocation
+* Split Array
+* Shipping Capacity
+* Minimum Eating Speed
+* Aggressive Cows
+* Similar load-balancing problems
