@@ -1,0 +1,408 @@
+# 🔎 Kth Missing Positive
+
+## Problem Statement
+
+You are given a sorted array `nums` containing **distinct positive integers** and an integer `k`.
+
+Your task is to find the **kth smallest positive integer that is missing** from the array.
+
+The array is strictly increasing.
+
+---
+
+## Example
+
+Consider:
+
+```text
+nums = [3, 5, 6, 10]
+k = 4
+```
+
+The positive integers are:
+
+```text
+1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+```
+
+Numbers missing from the array are:
+
+```text
+1, 2, 4, 7, 8, 9, ...
+```
+
+The 4th missing number is:
+
+```text
+7
+```
+
+Therefore:
+
+```text
+Answer = 7
+```
+
+---
+
+# Input Format
+
+The first line contains the number of test cases `T`.
+
+For each test case:
+
+### First line
+
+```text
+N k
+```
+
+where:
+
+* `N` = size of the array
+* `k` = position of the missing number we need
+
+### Second line
+
+```text
+nums[0] nums[1] ... nums[N-1]
+```
+
+A sorted array of distinct positive integers.
+
+---
+
+# Output Format
+
+For each test case, print:
+
+```text
+kth missing positive integer
+```
+
+---
+
+# Constraints
+
+* `1 ≤ T ≤ 100`
+* `1 ≤ N ≤ 1000`
+* `1 ≤ nums[i] ≤ 10000`
+* `1 ≤ k ≤ 10000`
+* `nums[i] < nums[j]` for `i < j`
+* The array is strictly increasing.
+
+---
+
+# Key Observation
+
+For every index `i`, we can calculate how many positive numbers are missing before `nums[i]`.
+
+If there were **no missing numbers**, the value at index `i` should be:
+
+```text
+i + 1
+```
+
+But the actual value is:
+
+```text
+nums[i]
+```
+
+Therefore, the number of missing values before or at `nums[i]` is:
+
+```text
+nums[i] - (i + 1)
+```
+
+### Example
+
+```text
+nums = [3, 5, 6, 10]
+```
+
+| Index `i` | `nums[i]` | Missing Count |
+| --------: | --------: | ------------: |
+|         0 |         3 |   `3 - 1 = 2` |
+|         1 |         5 |   `5 - 2 = 3` |
+|         2 |         6 |   `6 - 3 = 3` |
+|         3 |        10 |  `10 - 4 = 6` |
+
+So:
+
+```text
+missing(i) = nums[i] - i - 1
+```
+
+The missing count is **non-decreasing**, which allows us to use Binary Search.
+
+---
+
+# Binary Search Approach
+
+We want to find the first index `i` where:
+
+```text
+nums[i] - i - 1 >= k
+```
+
+This means that the kth missing number occurs **before `nums[i]`**.
+
+After finding that position, suppose the answer is after `left` elements.
+
+Then:
+
+```text
+answer = k + left
+```
+
+Why?
+
+If there are `left` numbers present before the answer, then the answer has to be shifted forward by those existing numbers.
+
+---
+
+# Algorithm
+
+For each test case:
+
+1. Set:
+
+   ```text
+   left = 0
+   right = N
+   ```
+2. Binary search for the first index where:
+
+   ```text
+   nums[mid] - mid - 1 >= k
+   ```
+3. If the condition is true:
+
+   * Search the left half.
+4. Otherwise:
+
+   * Search the right half.
+5. When the search finishes:
+
+   ```text
+   answer = k + left
+   ```
+6. Return the answer.
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+nums = [3, 5, 6, 10]
+k = 4
+```
+
+Calculate missing counts:
+
+```text
+Index 0 → 3 - 0 - 1 = 2
+Index 1 → 5 - 1 - 1 = 3
+Index 2 → 6 - 2 - 1 = 3
+Index 3 → 10 - 3 - 1 = 6
+```
+
+We need:
+
+```text
+missing count >= 4
+```
+
+The first position satisfying this is:
+
+```text
+index = 3
+```
+
+Therefore:
+
+```text
+answer = k + index
+       = 4 + 3
+       = 7
+```
+
+So:
+
+```text
+Answer = 7
+```
+
+---
+
+# Python Solution
+
+```python
+def findKthPositive(nums, k):
+    n = len(nums)
+
+    left = 0
+    right = n
+
+    while left < right:
+        mid = (left + right) // 2
+
+        # Number of missing positive integers
+        # before nums[mid]
+        missing = nums[mid] - mid - 1
+
+        if missing >= k:
+            right = mid
+        else:
+            left = mid + 1
+
+    # left numbers from the array occur before
+    # the kth missing number
+    return k + left
+
+
+# Input
+T = int(input())
+
+for _ in range(T):
+    N, k = map(int, input().split())
+    nums = list(map(int, input().split()))
+
+    print(findKthPositive(nums, k))
+```
+
+---
+
+# Example 1
+
+### Input
+
+```text
+2
+4 4
+3 5 6 10
+4 6
+1 4 5 8
+```
+
+### Output
+
+```text
+7
+10
+```
+
+### Test Case 1
+
+```text
+nums = [3, 5, 6, 10]
+k = 4
+```
+
+Missing numbers:
+
+```text
+1, 2, 4, 7, 8, 9, ...
+```
+
+The 4th missing number is:
+
+```text
+7
+```
+
+### Test Case 2
+
+```text
+nums = [1, 4, 5, 8]
+k = 6
+```
+
+Missing numbers:
+
+```text
+2, 3, 6, 7, 9, 10, ...
+```
+
+The 6th missing number is:
+
+```text
+10
+```
+
+---
+
+# Complexity Analysis
+
+Binary Search takes:
+
+```text
+O(log N)
+```
+
+time.
+
+### Time Complexity
+
+```text
+O(log N)
+```
+
+per test case.
+
+### Space Complexity
+
+```text
+O(1)
+```
+
+auxiliary space.
+
+---
+
+# Important Formula
+
+The most important formula in this problem is:
+
+```text
+missing = nums[i] - i - 1
+```
+
+And after finding the first index where:
+
+```text
+missing >= k
+```
+
+the answer is:
+
+```text
+answer = k + index
+```
+
+---
+
+# Key Takeaway
+
+This is another example of **Binary Search on a Monotonic Property**.
+
+Instead of searching for the missing number directly, we search for the **first position where the number of missing elements reaches `k`**.
+
+```text
+missing count:
+
+2 → 3 → 3 → 6
+          ↑
+    first >= k
+
+          ↓
+
+   kth missing number
+```
+
+### Remember
+
+> In a sorted array, if you can express the number of missing elements at each position and that count is monotonic, Binary Search can find the kth missing element efficiently.
