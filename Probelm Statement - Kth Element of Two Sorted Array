@@ -1,0 +1,393 @@
+# Kth Element of Two Sorted Arrays
+
+## Problem Statement
+
+You are given two sorted arrays `A` and `B` of sizes `M` and `N`.
+
+If we merge both arrays into one sorted array, we need to find the **Kth element** without actually creating the merged array.
+
+`K` is **1-based**, meaning:
+
+* `K = 1` → smallest element
+* `K = 2` → second smallest element
+* ...
+* `K = M + N` → largest element
+
+### Example
+
+```text
+A = [5, 10, 15]
+B = [2, 6, 12, 20, 25]
+K = 4
+```
+
+The merged sorted array would be:
+
+```text
+[2, 5, 6, 10, 12, 15, 20, 25]
+```
+
+The 4th element is:
+
+```text
+10
+```
+
+The goal is to find this value efficiently **without merging the arrays**.
+
+---
+
+## Input Format
+
+```text
+M N
+A[0] A[1] ... A[M-1]
+B[0] B[1] ... B[N-1]
+K
+```
+
+Where:
+
+* `M` = size of array `A`
+* `N` = size of array `B`
+* `A` = sorted array
+* `B` = sorted array
+* `K` = 1-based position to find
+
+---
+
+## Output Format
+
+Print the **Kth element** in the sorted order of the combined arrays.
+
+---
+
+## Constraints
+
+* `1 ≤ M, N ≤ 10^4`
+* `0 ≤ A[i], B[i] ≤ 10^9`
+* `1 ≤ K ≤ M + N`
+* Both arrays are sorted in non-decreasing order.
+
+---
+
+## Examples
+
+### Example 1
+
+#### Input
+
+```text
+3 5
+5 10 15
+2 6 12 20 25
+4
+```
+
+#### Output
+
+```text
+10
+```
+
+### Explanation
+
+The merged array is:
+
+```text
+[2, 5, 6, 10, 12, 15, 20, 25]
+```
+
+The 4th element is `10`.
+
+---
+
+### Example 2
+
+#### Input
+
+```text
+4 3
+1 3 5 7
+2 4 6
+5
+```
+
+#### Output
+
+```text
+5
+```
+
+### Explanation
+
+The merged array is:
+
+```text
+[1, 2, 3, 4, 5, 6, 7]
+```
+
+The 5th element is `5`.
+
+---
+
+# Approach
+
+A simple approach would be:
+
+1. Merge both arrays.
+2. Sort the merged array.
+3. Return the Kth element.
+
+But this requires extra space and takes more time.
+
+Instead, we use **Binary Search**.
+
+## Main Idea
+
+We divide the two arrays into two parts:
+
+```text
+Left Part | Right Part
+```
+
+We want exactly `K` elements on the left side.
+
+Suppose we take:
+
+```text
+x elements from A
+K - x elements from B
+```
+
+Then we need to make sure the partition is correct.
+
+For a valid partition:
+
+```text
+A[x-1] <= B[K-x]
+B[K-x-1] <= A[x]
+```
+
+When this is true, the largest element on the left side is the Kth element.
+
+So:
+
+```text
+answer = max(A[x-1], B[K-x-1])
+```
+
+We use binary search to find the correct value of `x`.
+
+---
+
+# Why Binary Search Works
+
+Because both arrays are sorted, if we take too many elements from `A`, we can move the partition to the left.
+
+If we take too few elements from `A`, we move the partition to the right.
+
+This gives us a monotonic search space.
+
+We always binary-search the **smaller array** to keep the algorithm efficient.
+
+---
+
+# Algorithm
+
+1. If `A` is larger than `B`, swap them.
+2. Let:
+
+   * `M = len(A)`
+   * `N = len(B)`
+3. Binary search the number of elements taken from `A`.
+4. For every partition:
+
+   * `leftA = A[x-1]`
+   * `rightA = A[x]`
+   * `leftB = B[K-x-1]`
+   * `rightB = B[K-x]`
+5. Check whether the partition is valid.
+6. If valid, return:
+
+   ```text
+   max(leftA, leftB)
+   ```
+7. If `leftA > rightB`, move left.
+8. Otherwise, move right.
+
+---
+
+# Python Solution
+
+```python
+def findKthElement(a, b, k):
+
+    # Always binary search on the smaller array
+    if len(a) > len(b):
+        a, b = b, a
+
+    m = len(a)
+    n = len(b)
+
+    # Number of elements we take from a
+    low = max(0, k - n)
+    high = min(k, m)
+
+    while low <= high:
+
+        take_a = (low + high) // 2
+        take_b = k - take_a
+
+        # Boundary values
+        left_a = float('-inf') if take_a == 0 else a[take_a - 1]
+        right_a = float('inf') if take_a == m else a[take_a]
+
+        left_b = float('-inf') if take_b == 0 else b[take_b - 1]
+        right_b = float('inf') if take_b == n else b[take_b]
+
+        # Correct partition
+        if left_a <= right_b and left_b <= right_a:
+            return max(left_a, left_b)
+
+        # Took too many elements from a
+        elif left_a > right_b:
+            high = take_a - 1
+
+        # Took too few elements from a
+        else:
+            low = take_a + 1
+
+
+# Input
+m, n = map(int, input().split())
+
+a = list(map(int, input().split()))
+b = list(map(int, input().split()))
+
+k = int(input())
+
+print(findKthElement(a, b, k))
+```
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+A = [5, 10, 15]
+B = [2, 6, 12, 20, 25]
+K = 4
+```
+
+We need exactly 4 elements on the left.
+
+Suppose we take:
+
+```text
+2 elements from A
+2 elements from B
+```
+
+So:
+
+```text
+A: [5, 10] | [15]
+B: [2, 6]  | [12, 20, 25]
+```
+
+Check the partition:
+
+```text
+leftA  = 10
+rightA = 15
+
+leftB  = 6
+rightB = 12
+```
+
+Conditions:
+
+```text
+leftA <= rightB
+10 <= 12   ✓
+
+leftB <= rightA
+6 <= 15    ✓
+```
+
+Therefore, the partition is correct.
+
+The Kth element is:
+
+```text
+max(leftA, leftB)
+= max(10, 6)
+= 10
+```
+
+So the answer is:
+
+```text
+10
+```
+
+---
+
+# Complexity
+
+Let:
+
+```text
+M = size of A
+N = size of B
+```
+
+We binary-search the smaller array.
+
+### Time Complexity
+
+```text
+O(log(min(M, N)))
+```
+
+### Auxiliary Space
+
+```text
+O(1)
+```
+
+We do not create the merged array.
+
+---
+
+# Key Takeaway
+
+The important trick is to **partition both sorted arrays instead of merging them**.
+
+We need exactly `K` elements on the left:
+
+```text
+take from A + take from B = K
+```
+
+Then binary search for the partition where:
+
+```text
+leftA <= rightB
+leftB <= rightA
+```
+
+Once the partition is correct:
+
+```text
+Kth element = max(leftA, leftB)
+```
+
+This reduces the problem from potentially `O(M + N)` work to:
+
+```text
+O(log(min(M, N)))
+```
