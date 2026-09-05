@@ -1,0 +1,532 @@
+# Search in a 2D Matrix
+
+## Problem Statement
+
+You are given an `N × M` matrix with the following properties:
+
+1. Every row is sorted in **ascending order**.
+2. The first element of every row is **greater than the last element of the previous row**.
+
+This means that if we read the matrix row by row, all elements are in sorted order.
+
+Your task is to determine whether a given `Target` value exists in the matrix.
+
+### Requirement
+
+The solution should be faster than:
+
+```text
+O(N + M)
+```
+
+---
+
+## Example Matrix
+
+Consider:
+
+```text
+1   3   5   7
+10  11  16  20
+23  30  34  60
+```
+
+If we read it row by row:
+
+```text
+1, 3, 5, 7, 10, 11, 16, 20, 23, 30, 34, 60
+```
+
+The entire sequence is sorted.
+
+Therefore, we can treat the matrix as a **single sorted array** and apply **Binary Search**.
+
+---
+
+## Input Format
+
+The input contains:
+
+* The first line: two integers `N` and `M`
+
+  * `N` = number of rows
+  * `M` = number of columns
+* The next `N` lines contain `M` integers representing the matrix.
+* The final line contains the `Target` value.
+
+---
+
+## Output Format
+
+Print:
+
+```text
+YES
+```
+
+if `Target` exists in the matrix.
+
+Otherwise, print:
+
+```text
+NO
+```
+
+---
+
+## Constraints
+
+* `1 ≤ N, M ≤ 100`
+* `-10^4 ≤ matrix[i][j], Target ≤ 10^4`
+* The matrix is non-empty.
+* Each row is sorted in ascending order.
+* The first element of each row is greater than the last element of the previous row.
+
+---
+
+# Example 1
+
+### Input
+
+```text
+3 4
+1 3 5 7
+10 11 16 20
+23 30 34 60
+3
+```
+
+### Output
+
+```text
+YES
+```
+
+### Explanation
+
+The target is:
+
+```text
+3
+```
+
+It exists in the matrix at:
+
+```text
+row = 0
+column = 1
+```
+
+Therefore, the answer is `YES`.
+
+---
+
+# Example 2
+
+### Input
+
+```text
+3 4
+1 3 5 7
+10 11 16 20
+23 30 34 60
+13
+```
+
+### Output
+
+```text
+NO
+```
+
+### Explanation
+
+The value `13` does not exist in the matrix.
+
+Therefore, the answer is `NO`.
+
+---
+
+# Approach
+
+Since the matrix is globally sorted when read row by row, we don't need to search each row separately.
+
+We can perform **Binary Search** on the entire matrix.
+
+The only problem is that the matrix uses two-dimensional indexes:
+
+```text
+matrix[row][column]
+```
+
+while Binary Search normally works with a one-dimensional array.
+
+We can convert a one-dimensional index `mid` into:
+
+```text
+row = mid // M
+column = mid % M
+```
+
+So:
+
+```text
+matrix[row][column]
+```
+
+becomes:
+
+```text
+matrix[mid // M][mid % M]
+```
+
+---
+
+# How It Works
+
+For a matrix with `N` rows and `M` columns, there are:
+
+```text
+N × M
+```
+
+total elements.
+
+We perform Binary Search between:
+
+```text
+left = 0
+right = N × M - 1
+```
+
+For every middle position:
+
+```text
+mid = (left + right) // 2
+```
+
+Convert `mid` into a matrix position:
+
+```text
+row = mid // M
+column = mid % M
+```
+
+Then check:
+
+### Case 1: Target Found
+
+If:
+
+```text
+matrix[row][column] == target
+```
+
+return `YES`.
+
+### Case 2: Target is Larger
+
+If:
+
+```text
+matrix[row][column] < target
+```
+
+search the right half:
+
+```text
+left = mid + 1
+```
+
+### Case 3: Target is Smaller
+
+If:
+
+```text
+matrix[row][column] > target
+```
+
+search the left half:
+
+```text
+right = mid - 1
+```
+
+If the search finishes without finding the target, return `NO`.
+
+---
+
+# Algorithm
+
+1. Read `N` and `M`.
+2. Read the matrix.
+3. Read `Target`.
+4. Set:
+
+   ```text
+   left = 0
+   right = N × M - 1
+   ```
+5. While `left <= right`:
+
+   * Calculate `mid`.
+   * Convert `mid` to `(row, column)`.
+   * Compare the matrix value with `Target`.
+   * Adjust `left` or `right`.
+6. If the target is found, print `YES`.
+7. Otherwise, print `NO`.
+
+---
+
+# Python Solution
+
+```python
+def search_matrix(matrix, target):
+    rows = len(matrix)
+    cols = len(matrix[0])
+
+    left = 0
+    right = rows * cols - 1
+
+    while left <= right:
+        mid = (left + right) // 2
+
+        # Convert 1D index to 2D coordinates
+        row = mid // cols
+        col = mid % cols
+
+        value = matrix[row][col]
+
+        if value == target:
+            return True
+
+        elif value < target:
+            left = mid + 1
+
+        else:
+            right = mid - 1
+
+    return False
+
+
+# Input
+n, m = map(int, input().split())
+
+matrix = []
+
+for _ in range(n):
+    matrix.append(list(map(int, input().split())))
+
+target = int(input())
+
+# Output
+if search_matrix(matrix, target):
+    print("YES")
+else:
+    print("NO")
+```
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+1   3   5   7
+10  11  16  20
+23  30  34  60
+```
+
+Target:
+
+```text
+16
+```
+
+There are:
+
+```text
+3 × 4 = 12
+```
+
+elements.
+
+So:
+
+```text
+left = 0
+right = 11
+```
+
+### Step 1
+
+```text
+mid = (0 + 11) // 2
+    = 5
+```
+
+Convert index `5`:
+
+```text
+row = 5 // 4 = 1
+col = 5 % 4 = 1
+```
+
+Value:
+
+```text
+matrix[1][1] = 11
+```
+
+Since:
+
+```text
+11 < 16
+```
+
+search right:
+
+```text
+left = 6
+```
+
+### Step 2
+
+```text
+mid = (6 + 11) // 2
+    = 8
+```
+
+```text
+row = 8 // 4 = 2
+col = 8 % 4 = 0
+```
+
+Value:
+
+```text
+23
+```
+
+Since:
+
+```text
+23 > 16
+```
+
+search left:
+
+```text
+right = 7
+```
+
+### Step 3
+
+```text
+mid = (6 + 7) // 2
+    = 6
+```
+
+```text
+row = 6 // 4 = 1
+col = 6 % 4 = 2
+```
+
+Value:
+
+```text
+16
+```
+
+Target found!
+
+```text
+YES
+```
+
+---
+
+# Complexity Analysis
+
+There are `N × M` elements in the matrix.
+
+Binary Search takes:
+
+```text
+O(log(N × M))
+```
+
+### Time Complexity
+
+```text
+O(log(N × M))
+```
+
+### Space Complexity
+
+```text
+O(1)
+```
+
+excluding the memory required to store the input matrix.
+
+---
+
+# Key Insight
+
+The most important observation is:
+
+> Although the matrix is two-dimensional, its values are globally sorted when read row by row.
+
+For example:
+
+```text
+1  3  5  7
+10 11 16 20
+23 30 34 60
+```
+
+is equivalent to:
+
+```text
+1 3 5 7 10 11 16 20 23 30 34 60
+```
+
+Therefore, we can use normal Binary Search.
+
+The conversion:
+
+```python
+row = mid // cols
+col = mid % cols
+```
+
+allows us to perform Binary Search without actually converting the matrix into a one-dimensional array.
+
+---
+
+# Key Takeaway
+
+For a matrix where:
+
+* Every row is sorted.
+* The first element of each row is greater than the last element of the previous row.
+
+Think of the matrix as a **flattened sorted array**.
+
+Then use:
+
+```python
+mid = (left + right) // 2
+row = mid // cols
+col = mid % cols
+```
+
+and perform Binary Search in:
+
+```text
+O(log(N × M))
+```
+
+This is much faster than scanning the entire matrix.
