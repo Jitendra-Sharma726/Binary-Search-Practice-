@@ -1,0 +1,517 @@
+# Minion Chef and Bananas
+
+## Problem Statement
+
+Chef has `N` piles of bananas.
+
+The `i-th` pile contains `Ai` bananas.
+
+Chef has exactly `H` hours to finish eating all the bananas.
+
+Chef chooses an eating speed `K`, meaning she can eat at most `K` bananas from one pile in one hour.
+
+### Eating Rules
+
+During each hour:
+
+* Chef chooses one pile.
+* If the pile has at least `K` bananas, she eats exactly `K`.
+* If the pile has fewer than `K` bananas, she eats all remaining bananas from that pile.
+* She cannot eat from another pile during the same hour.
+
+Chef wants to eat as **slowly as possible**, while still finishing all bananas within `H` hours.
+
+Find the **minimum possible value of `K`**.
+
+---
+
+## Example
+
+Suppose:
+
+```text
+N = 3
+H = 4
+
+Piles = [1, 2, 3]
+```
+
+If:
+
+```text
+K = 2
+```
+
+The required hours are:
+
+```text
+Pile 1: ceil(1 / 2) = 1 hour
+Pile 2: ceil(2 / 2) = 1 hour
+Pile 3: ceil(3 / 2) = 2 hours
+```
+
+Total:
+
+```text
+1 + 1 + 2 = 4 hours
+```
+
+So `K = 2` is sufficient.
+
+Since we want the smallest possible speed:
+
+```text
+Answer = 2
+```
+
+---
+
+## Input Format
+
+The first line contains an integer `T`, the number of test cases.
+
+For each test case:
+
+```text
+N H
+A1 A2 A3 ... AN
+```
+
+Where:
+
+* `N` = number of banana piles.
+* `H` = maximum number of hours available.
+* `Ai` = number of bananas in the `i-th` pile.
+
+---
+
+## Output Format
+
+For each test case, print the minimum eating speed `K`.
+
+---
+
+## Constraints
+
+* `1 ≤ T ≤ 10`
+* `1 ≤ N ≤ 10^5`
+* `N ≤ H ≤ 10^9`
+* `1 ≤ Ai ≤ 10^9`
+
+---
+
+## Sample Input
+
+```text
+3
+3 3
+1 2 3
+3 4
+1 2 3
+4 5
+4 3 2 7
+```
+
+## Sample Output
+
+```text
+3
+2
+4
+```
+
+---
+
+# Approach
+
+This is a classic **Binary Search on Answer** problem.
+
+We don't need to try every possible value of `K`.
+
+The minimum possible speed is:
+
+```text
+1
+```
+
+and the maximum useful speed is:
+
+```text
+max(A)
+```
+
+So we can binary search between:
+
+```text
+1 → max(A)
+```
+
+---
+
+## How to Check a Speed?
+
+Suppose we choose a speed `K`.
+
+For a pile containing `A` bananas, the number of hours required is:
+
+```text
+ceil(A / K)
+```
+
+Instead of using floating-point arithmetic, calculate it as:
+
+```text
+(A + K - 1) // K
+```
+
+For example:
+
+```text
+A = 7
+K = 3
+
+hours = (7 + 3 - 1) // 3
+      = 9 // 3
+      = 3
+```
+
+Therefore, for all piles:
+
+```text
+total_hours = Σ ceil(Ai / K)
+```
+
+If:
+
+```text
+total_hours <= H
+```
+
+then speed `K` is fast enough.
+
+Otherwise, `K` is too slow.
+
+---
+
+# Why Binary Search Works
+
+There is a monotonic relationship.
+
+If a speed `K` is sufficient, then every speed greater than `K` will also be sufficient.
+
+For example:
+
+```text
+K = 3  → Too slow
+K = 4  → Too slow
+K = 5  → Works
+K = 6  → Works
+K = 7  → Works
+```
+
+We are looking for the **first speed that works**.
+
+This is exactly what binary search is designed for.
+
+---
+
+# Algorithm
+
+For each test case:
+
+1. Set:
+
+```text
+low = 1
+high = max(A)
+```
+
+2. Calculate:
+
+```text
+mid = (low + high) // 2
+```
+
+3. Calculate the number of hours needed at speed `mid`.
+
+4. If:
+
+```text
+hours <= H
+```
+
+then `mid` works.
+
+Try a smaller speed:
+
+```text
+high = mid - 1
+```
+
+5. Otherwise, `mid` is too slow.
+
+Increase the speed:
+
+```text
+low = mid + 1
+```
+
+6. Continue until:
+
+```text
+low > high
+```
+
+7. The answer is the smallest valid speed found.
+
+---
+
+# Python Solution
+
+```python
+def can_finish(piles, hours, speed):
+    total_hours = 0
+
+    for bananas in piles:
+        # Hours needed for this pile
+        total_hours += (bananas + speed - 1) // speed
+
+        # No need to continue if already too many hours
+        if total_hours > hours:
+            return False
+
+    return True
+
+
+def min_eating_speed(piles, hours):
+    low = 1
+    high = max(piles)
+
+    answer = high
+
+    while low <= high:
+        mid = (low + high) // 2
+
+        if can_finish(piles, hours, mid):
+            # mid is possible, try a smaller speed
+            answer = mid
+            high = mid - 1
+        else:
+            # mid is too slow
+            low = mid + 1
+
+    return answer
+
+
+# Input
+T = int(input())
+
+for _ in range(T):
+    N, H = map(int, input().split())
+    piles = list(map(int, input().split()))
+
+    print(min_eating_speed(piles, H))
+```
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+Piles = [1, 2, 3]
+H = 4
+```
+
+Search range:
+
+```text
+low = 1
+high = 3
+```
+
+### Try `K = 2`
+
+Required hours:
+
+```text
+ceil(1 / 2) = 1
+ceil(2 / 2) = 1
+ceil(3 / 2) = 2
+```
+
+Total:
+
+```text
+1 + 1 + 2 = 4
+```
+
+Since:
+
+```text
+4 <= H
+```
+
+`K = 2` works.
+
+Try something smaller:
+
+```text
+K = 1
+```
+
+Required hours:
+
+```text
+1 + 2 + 3 = 6
+```
+
+Since:
+
+```text
+6 > 4
+```
+
+`K = 1` does not work.
+
+Therefore:
+
+```text
+Answer = 2
+```
+
+---
+
+# Another Example
+
+```text
+Piles = [4, 3, 2, 7]
+H = 5
+```
+
+Try:
+
+```text
+K = 4
+```
+
+Hours:
+
+```text
+ceil(4 / 4) = 1
+ceil(3 / 4) = 1
+ceil(2 / 4) = 1
+ceil(7 / 4) = 2
+```
+
+Total:
+
+```text
+1 + 1 + 1 + 2 = 5
+```
+
+So `K = 4` works.
+
+Try:
+
+```text
+K = 3
+```
+
+Hours:
+
+```text
+ceil(4 / 3) = 2
+ceil(3 / 3) = 1
+ceil(2 / 3) = 1
+ceil(7 / 3) = 3
+```
+
+Total:
+
+```text
+2 + 1 + 1 + 3 = 7
+```
+
+Too many hours.
+
+Therefore:
+
+```text
+Answer = 4
+```
+
+---
+
+# Complexity
+
+Let:
+
+* `N` = number of piles
+* `M` = maximum number of bananas in a pile
+
+Binary search performs approximately:
+
+```text
+O(log M)
+```
+
+checks.
+
+Each check scans all `N` piles:
+
+```text
+O(N)
+```
+
+Therefore:
+
+### Time Complexity
+
+```text
+O(N log M)
+```
+
+### Space Complexity
+
+```text
+O(1)
+```
+
+excluding the input array.
+
+---
+
+# Key Takeaway
+
+The main idea is **Binary Search on the Answer**.
+
+Instead of asking:
+
+> "How many bananas can Chef eat?"
+
+we ask:
+
+> "Can Chef finish all bananas if her speed is `K`?"
+
+This gives a monotonic condition:
+
+```text
+Too Slow ←────────────→ Fast Enough
+
+    1   2   3   4   5   6   7
+    ❌  ❌  ❌  ❌  ✅  ✅  ✅
+```
+
+We need to find the **first `K` that works**.
+
+```text
+Binary Search
+      ↓
+Find minimum valid K
+      ↓
+O(N log(max(A)))
+```
+
+This pattern is extremely useful for problems where you need to find the **minimum/maximum value satisfying a condition**.
