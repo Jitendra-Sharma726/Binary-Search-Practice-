@@ -1,0 +1,389 @@
+# Sheokand and Number
+
+## Problem Statement
+
+You are given an integer `N`.
+
+You need to convert `N` into an integer `M` that can be represented as:
+
+```text
+M = 2^x + 2^y
+```
+
+where:
+
+* `x` and `y` are non-negative integers.
+* `x != y`.
+
+You can perform the following operations:
+
+* Increase `N` by `1`.
+* Decrease `N` by `1`.
+
+Each operation costs `1`.
+
+Your task is to find the **minimum number of operations** needed to convert `N` into a valid number `M`.
+
+---
+
+## Key Observation
+
+We need to find the valid number closest to `N`.
+
+A valid number has the form:
+
+```text
+2^x + 2^y
+```
+
+with:
+
+```text
+x != y
+```
+
+For example:
+
+```text
+2^3 + 2^1 = 8 + 2 = 10
+```
+
+Therefore, `10` is a valid number.
+
+If `N = 22`, the closest valid numbers are:
+
+```text
+20 = 2^4 + 2^2
+24 = 2^4 + 2^3
+```
+
+So the answer is:
+
+```text
+min(|22 - 20|, |24 - 22|) = 2
+```
+
+---
+
+## Input Format
+
+The first line contains an integer `T`, the number of test cases.
+
+For each test case:
+
+```text
+N
+```
+
+where `N` is the given integer.
+
+---
+
+## Output Format
+
+For each test case, print the minimum number of operations required.
+
+---
+
+## Constraints
+
+* `1 ≤ T ≤ 100000`
+* `1 ≤ N ≤ 10^9`
+
+---
+
+## Example
+
+### Input
+
+```text
+3
+10
+22
+4
+```
+
+### Output
+
+```text
+0
+2
+1
+```
+
+### Explanation
+
+#### Case 1: `N = 10`
+
+```text
+10 = 2^3 + 2^1
+```
+
+So `10` is already valid.
+
+```text
+Answer = 0
+```
+
+#### Case 2: `N = 22`
+
+The closest valid numbers are:
+
+```text
+20 = 2^4 + 2^2
+24 = 2^4 + 2^3
+```
+
+Therefore:
+
+```text
+min(|22 - 20|, |24 - 22|) = 2
+```
+
+#### Case 3: `N = 4`
+
+The closest valid numbers are:
+
+```text
+3 = 2^1 + 2^0
+5 = 2^2 + 2^0
+```
+
+Therefore:
+
+```text
+min(|4 - 3|, |5 - 4|) = 1
+```
+
+---
+
+# Approach
+
+This is a **Binary Search** problem.
+
+Instead of checking every possible integer around `N`, we can first generate all numbers of the form:
+
+```text
+2^x + 2^y
+```
+
+where:
+
+```text
+x != y
+```
+
+Since `N ≤ 10^9`, there are only about `31` relevant powers of `2`.
+
+Thus, the total number of possible values is very small.
+
+### Steps
+
+1. Generate powers of `2`.
+2. Generate every possible value `2^x + 2^y` where `x != y`.
+3. Store the values in a sorted array.
+4. For each `N`, use binary search to find:
+
+   * The first valid number greater than or equal to `N`.
+   * The valid number immediately before it.
+5. Return the smaller distance.
+
+---
+
+## Why Binary Search?
+
+Suppose the sorted valid numbers are:
+
+```text
+3  5  6  9  10  12  17  18  20  24 ...
+```
+
+For:
+
+```text
+N = 22
+```
+
+Binary search gives:
+
+```text
+Previous = 20
+Next     = 24
+```
+
+So:
+
+```text
+Answer = min(22 - 20, 24 - 22)
+       = min(2, 2)
+       = 2
+```
+
+---
+
+# Python Solution
+
+```python
+from bisect import bisect_left
+
+
+# Generate powers of 2
+powers = [1 << i for i in range(32)]
+
+
+# Generate all numbers of the form:
+# 2^x + 2^y where x != y
+valid_numbers = set()
+
+for i in range(len(powers)):
+    for j in range(len(powers)):
+        if i != j:
+            valid_numbers.add(powers[i] + powers[j])
+
+
+# Sort all valid numbers
+valid_numbers = sorted(valid_numbers)
+
+
+def solve(n):
+    # Find first valid number >= n
+    pos = bisect_left(valid_numbers, n)
+
+    answer = float("inf")
+
+    # Candidate on the right
+    if pos < len(valid_numbers):
+        answer = min(
+            answer,
+            valid_numbers[pos] - n
+        )
+
+    # Candidate on the left
+    if pos > 0:
+        answer = min(
+            answer,
+            n - valid_numbers[pos - 1]
+        )
+
+    return answer
+
+
+# Input
+T = int(input())
+
+for _ in range(T):
+    n = int(input())
+    print(solve(n))
+```
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+N = 22
+```
+
+The nearby valid numbers are:
+
+```text
+20
+24
+```
+
+Binary search finds the position of `24`.
+
+The previous value is `20`.
+
+Calculate:
+
+```text
+Distance to previous = 22 - 20 = 2
+Distance to next     = 24 - 22 = 2
+```
+
+Therefore:
+
+```text
+Answer = 2
+```
+
+---
+
+# Complexity
+
+Let `P` be the number of powers of `2`.
+
+Since:
+
+```text
+P ≈ log₂(N)
+```
+
+### Precomputation
+
+Generating all pairs:
+
+```text
+O(P²)
+```
+
+Sorting them:
+
+```text
+O(P² log(P²))
+```
+
+Since `P` is very small, this is effectively constant time for the given constraints.
+
+### Each Test Case
+
+Binary search:
+
+```text
+O(log V)
+```
+
+where `V` is the number of valid numbers.
+
+### Overall
+
+```text
+Precomputation: O((log N)²)
+Each test case: O(log V)
+Space:          O((log N)²)
+```
+
+---
+
+# Key Takeaway
+
+The important idea is to recognize that there are only a **small number of possible values** of:
+
+```text
+2^x + 2^y
+```
+
+Then:
+
+```text
+Generate valid numbers
+        ↓
+Sort them
+        ↓
+Binary Search around N
+        ↓
+Check previous and next
+        ↓
+Return minimum distance
+```
+
+The answer is simply:
+
+```text
+min(N - previous, next - N)
+```
+
+This makes the solution fast enough even for `100,000` test cases.
