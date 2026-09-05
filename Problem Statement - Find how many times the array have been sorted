@@ -1,0 +1,441 @@
+# 🔄 Find How Many Times the Array Has Been Rotated
+
+## Problem Statement
+
+You are given an array `nums` that was originally sorted in **ascending order** and contains **unique elements**.
+
+The array has been rotated to the **right** some number of times.
+
+Your task is to find the **number of right rotations** performed on the original sorted array.
+
+### Example
+
+Original sorted array:
+
+```text
+[2, 4, 5, 7, 9, 12, 15]
+```
+
+After rotating right `4` times:
+
+```text
+[7, 9, 12, 15, 2, 4, 5]
+```
+
+Therefore, the answer is:
+
+```text
+4
+```
+
+---
+
+## Key Observation
+
+In a rotated sorted array, the **smallest element** is the point where the rotation happened.
+
+For example:
+
+```text
+[7, 9, 12, 15, 2, 4, 5]
+                ↑
+             minimum
+```
+
+The smallest element `2` is at index `4`.
+
+Therefore:
+
+```text
+Number of rotations = index of the minimum element
+```
+
+Since the array is sorted and rotated, we can find this minimum element using **Binary Search** in `O(log N)` time.
+
+---
+
+## Input Format
+
+The first line contains an integer `T`, the number of test cases.
+
+For each test case:
+
+* The first line contains an integer `N`, the size of the array.
+* The second line contains `N` space-separated integers.
+
+```text
+T
+N
+nums[0] nums[1] ... nums[N-1]
+```
+
+---
+
+## Output Format
+
+For each test case, print a single integer representing the **number of right rotations**.
+
+---
+
+## Constraints
+
+* `1 ≤ N ≤ 10⁴`
+* `-10⁴ ≤ nums[i] ≤ 10⁴`
+* All elements are unique.
+* `nums` is a rotated version of a sorted array.
+
+---
+
+## Example
+
+### Input
+
+```text
+3
+7
+7 9 12 15 2 4 5
+6
+10 20 30 5 7 8
+5
+1 2 3 4 5
+```
+
+### Output
+
+```text
+4
+3
+0
+```
+
+### Explanation
+
+#### Test Case 1
+
+```text
+Rotated array:
+[7, 9, 12, 15, 2, 4, 5]
+
+Minimum element = 2
+Index of minimum = 4
+```
+
+So:
+
+```text
+Answer = 4
+```
+
+The original array was:
+
+```text
+[2, 4, 5, 7, 9, 12, 15]
+```
+
+and it was rotated right `4` times.
+
+#### Test Case 2
+
+```text
+[10, 20, 30, 5, 7, 8]
+```
+
+Minimum element:
+
+```text
+5
+```
+
+Index:
+
+```text
+3
+```
+
+Therefore:
+
+```text
+Answer = 3
+```
+
+#### Test Case 3
+
+```text
+[1, 2, 3, 4, 5]
+```
+
+The array is already sorted.
+
+Therefore:
+
+```text
+Answer = 0
+```
+
+---
+
+# Approach: Binary Search
+
+We need to find the index of the **minimum element**.
+
+Use two pointers:
+
+```text
+left = 0
+right = n - 1
+```
+
+At every step:
+
+```text
+mid = (left + right) // 2
+```
+
+Compare `nums[mid]` with `nums[right]`.
+
+### Case 1: `nums[mid] > nums[right]`
+
+This means the minimum element is on the **right side**.
+
+```text
+left = mid + 1
+```
+
+### Case 2: `nums[mid] < nums[right]`
+
+This means the minimum element is at `mid` or on the **left side**.
+
+```text
+right = mid
+```
+
+When:
+
+```text
+left == right
+```
+
+we have found the index of the minimum element.
+
+That index is the number of rotations.
+
+---
+
+# Algorithm
+
+For every test case:
+
+1. Set `left = 0` and `right = n - 1`.
+2. While `left < right`:
+
+   * Calculate `mid`.
+   * If `nums[mid] > nums[right]`:
+
+     * Move `left` to `mid + 1`.
+   * Otherwise:
+
+     * Move `right` to `mid`.
+3. When `left == right`, return `left`.
+
+---
+
+# Python Solution
+
+```python
+def countRotations(nums):
+    left = 0
+    right = len(nums) - 1
+
+    while left < right:
+        mid = (left + right) // 2
+
+        if nums[mid] > nums[right]:
+            # Minimum is on the right side
+            left = mid + 1
+        else:
+            # Minimum is at mid or on the left side
+            right = mid
+
+    return left
+
+
+# Input
+T = int(input())
+
+for _ in range(T):
+    n = int(input())
+    nums = list(map(int, input().split()))
+
+    print(countRotations(nums))
+```
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+nums = [7, 9, 12, 15, 2, 4, 5]
+```
+
+Initial:
+
+```text
+left = 0
+right = 6
+```
+
+### Step 1
+
+```text
+mid = 3
+
+nums[mid] = 15
+nums[right] = 5
+```
+
+Since:
+
+```text
+15 > 5
+```
+
+the minimum is on the right.
+
+```text
+left = 4
+```
+
+---
+
+### Step 2
+
+```text
+left = 4
+right = 6
+
+mid = 5
+
+nums[mid] = 4
+nums[right] = 5
+```
+
+Since:
+
+```text
+4 < 5
+```
+
+the minimum is at `mid` or to the left.
+
+```text
+right = 5
+```
+
+---
+
+### Step 3
+
+```text
+left = 4
+right = 5
+
+mid = 4
+
+nums[mid] = 2
+nums[right] = 4
+```
+
+Since:
+
+```text
+2 < 4
+```
+
+move:
+
+```text
+right = 4
+```
+
+Now:
+
+```text
+left = right = 4
+```
+
+Therefore:
+
+```text
+minimum index = 4
+```
+
+So:
+
+```text
+number of rotations = 4
+```
+
+---
+
+# Complexity
+
+### Time Complexity
+
+Binary search takes:
+
+```text
+O(log N)
+```
+
+for each test case.
+
+### Space Complexity
+
+```text
+O(1)
+```
+
+No additional data structure is required.
+
+---
+
+# Why Binary Search?
+
+A linear search would find the minimum in:
+
+```text
+O(N)
+```
+
+But because the array is a **rotated sorted array**, we can use its structure to eliminate half of the search space at every step.
+
+Therefore:
+
+```text
+Linear Search  → O(N)
+Binary Search  → O(log N)
+```
+
+---
+
+# Key Takeaway
+
+For a sorted array rotated to the right:
+
+> **The number of rotations is exactly the index of the minimum element.**
+
+Because the array is rotated and sorted, the minimum can be found efficiently using **Binary Search**.
+
+### Pattern
+
+```text
+Rotated Sorted Array
+        ↓
+Find Minimum
+        ↓
+Index of Minimum
+        ↓
+Number of Rotations
+```
