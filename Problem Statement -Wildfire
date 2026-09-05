@@ -1,0 +1,481 @@
+# Wildfire
+
+## Problem Statement
+
+A wildfire is approaching a straight road containing several houses.
+
+To protect the houses, sprinklers are placed at different positions on the road.
+
+Each sprinkler has the **same coverage radius `R`**.
+
+A sprinkler at position `s` can protect a house at position `h` if:
+
+```text
+|h - s| <= R
+```
+
+Your task is to find the **minimum radius `R`** such that **every house is protected by at least one sprinkler**.
+
+---
+
+## Example
+
+### Input
+
+```text
+4
+1 2 3 4
+2
+1 4
+```
+
+### Output
+
+```text
+1
+```
+
+### Explanation
+
+Houses:
+
+```text
+[1, 2, 3, 4]
+```
+
+Sprinklers:
+
+```text
+[1, 4]
+```
+
+If the radius is `1`:
+
+```text
+Sprinkler at 1 → covers houses 1 and 2
+Sprinkler at 4 → covers houses 3 and 4
+```
+
+Therefore, every house is protected.
+
+So the minimum required radius is:
+
+```text
+1
+```
+
+---
+
+# Input Format
+
+```text
+n
+house_positions
+m
+sprinkler_positions
+```
+
+Where:
+
+* `n` = number of houses.
+* The second line contains the positions of all houses.
+* `m` = number of sprinklers.
+* The fourth line contains the positions of all sprinklers.
+
+---
+
+# Output Format
+
+Print a single integer:
+
+```text
+minimum required radius
+```
+
+---
+
+# Constraints
+
+```text
+1 ≤ n, m ≤ 10^5
+1 ≤ houses[i], sprinklers[i] ≤ 10^9
+```
+
+---
+
+# Approach
+
+We need to find the **smallest possible radius** that covers every house.
+
+This is a classic **Binary Search on Answer** problem.
+
+## Key Idea
+
+For a fixed radius `R`, we can check whether all houses are covered.
+
+For every house, find the **nearest sprinkler**.
+
+The required radius for that house is:
+
+```text
+distance = minimum |house - sprinkler|
+```
+
+Therefore, the minimum radius required for all houses is:
+
+```text
+maximum distance of any house from its nearest sprinkler
+```
+
+We can calculate this efficiently after sorting the sprinkler positions.
+
+---
+
+# Why Binary Search?
+
+The answer lies between:
+
+```text
+0
+```
+
+and:
+
+```text
+maximum possible distance
+```
+
+If radius `R` is enough to cover all houses, then any radius greater than `R` will also work.
+
+This gives us a **monotonic condition**:
+
+```text
+Radius too small → Not possible
+Radius large enough → Possible
+```
+
+Whenever a problem has this property, binary search is a good choice.
+
+---
+
+# Algorithm
+
+1. Sort the house positions.
+2. Sort the sprinkler positions.
+3. For each house:
+
+   * Find the closest sprinkler using binary search.
+   * Calculate the minimum distance to a sprinkler.
+4. Keep the maximum of these minimum distances.
+5. That maximum distance is the minimum required radius.
+
+---
+
+# Finding the Nearest Sprinkler
+
+Suppose the sorted sprinkler positions are:
+
+```text
+[1, 4, 8, 12]
+```
+
+and the house is at:
+
+```text
+6
+```
+
+Using binary search, we find the first sprinkler position greater than or equal to `6`.
+
+That is:
+
+```text
+8
+```
+
+But we also need to check the sprinkler immediately before it:
+
+```text
+4
+```
+
+Distances:
+
+```text
+|6 - 4| = 2
+|6 - 8| = 2
+```
+
+Therefore, the nearest sprinkler is at distance:
+
+```text
+2
+```
+
+---
+
+# Python Solution
+
+```python
+from bisect import bisect_left
+
+
+def minimum_radius(houses, sprinklers):
+    # Sort positions
+    houses.sort()
+    sprinklers.sort()
+
+    answer = 0
+
+    for house in houses:
+
+        # Find first sprinkler >= house
+        pos = bisect_left(sprinklers, house)
+
+        # Distance to the sprinkler on the right
+        right_distance = float('inf')
+
+        if pos < len(sprinklers):
+            right_distance = abs(sprinklers[pos] - house)
+
+        # Distance to the sprinkler on the left
+        left_distance = float('inf')
+
+        if pos > 0:
+            left_distance = abs(sprinklers[pos - 1] - house)
+
+        # Nearest sprinkler distance
+        nearest = min(left_distance, right_distance)
+
+        # We need the maximum of these distances
+        answer = max(answer, nearest)
+
+    return answer
+
+
+# Input
+n = int(input())
+houses = list(map(int, input().split()))
+
+m = int(input())
+sprinklers = list(map(int, input().split()))
+
+# Output
+print(minimum_radius(houses, sprinklers))
+```
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+Houses:
+[1, 2, 3, 4]
+
+Sprinklers:
+[1, 4]
+```
+
+The sprinklers are already sorted:
+
+```text
+[1, 4]
+```
+
+### House = 1
+
+Nearest sprinkler:
+
+```text
+1
+```
+
+Distance:
+
+```text
+|1 - 1| = 0
+```
+
+---
+
+### House = 2
+
+Nearest sprinkler:
+
+```text
+1 or 4
+```
+
+Distances:
+
+```text
+|2 - 1| = 1
+|2 - 4| = 2
+```
+
+Minimum distance:
+
+```text
+1
+```
+
+---
+
+### House = 3
+
+Distances:
+
+```text
+|3 - 1| = 2
+|3 - 4| = 1
+```
+
+Minimum distance:
+
+```text
+1
+```
+
+---
+
+### House = 4
+
+Nearest sprinkler:
+
+```text
+4
+```
+
+Distance:
+
+```text
+|4 - 4| = 0
+```
+
+---
+
+The maximum minimum distance is:
+
+```text
+max(0, 1, 1, 0) = 1
+```
+
+Therefore:
+
+```text
+Answer = 1
+```
+
+---
+
+# Complexity Analysis
+
+Let:
+
+```text
+N = number of houses
+M = number of sprinklers
+```
+
+### Sorting
+
+Sorting houses:
+
+```text
+O(N log N)
+```
+
+Sorting sprinklers:
+
+```text
+O(M log M)
+```
+
+### Binary Search
+
+For every house, we perform a binary search over sprinklers:
+
+```text
+O(N log M)
+```
+
+### Total Time
+
+```text
+O(N log N + M log M + N log M)
+```
+
+### Space
+
+```text
+O(1)
+```
+
+excluding the input arrays and sorting space.
+
+---
+
+# Alternative Two-Pointer Approach
+
+After sorting both arrays, we can also solve the problem using **two pointers**.
+
+For each house, move the sprinkler pointer forward while the next sprinkler is closer to the house.
+
+This gives:
+
+```text
+O(N log N + M log M)
+```
+
+overall time.
+
+However, the binary-search approach is useful for learning the **Lower Bound / Binary Search** pattern.
+
+---
+
+# Important Pattern
+
+This problem teaches an important binary-search technique:
+
+```text
+Find the closest value to X in a sorted array
+```
+
+Use:
+
+```text
+bisect_left()
+```
+
+and check:
+
+```text
+position
+position - 1
+```
+
+because the closest value can be on either side.
+
+---
+
+# Key Takeaway
+
+For every house:
+
+```text
+Find nearest sprinkler
+        ↓
+Calculate minimum distance
+        ↓
+Take maximum of all distances
+        ↓
+Minimum required radius
+```
+
+The important idea is:
+
+> **The required radius is the maximum distance from any house to its nearest sprinkler.**
+
+This approach efficiently handles up to `10^5` houses and sprinklers.
