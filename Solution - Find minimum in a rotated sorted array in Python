@@ -1,0 +1,47 @@
+import sys
+
+def findMin(nums):
+    low = 0
+    high = len(nums) - 1
+    
+    while low < high:
+        mid = (low + high) // 2
+        
+        # If middle element is greater than the last element,
+        # the minimum must be in the right subarray
+        if nums[mid] > nums[high]:
+            low = mid + 1
+        # Otherwise, the minimum is either at mid or in the left subarray
+        else:
+            high = mid
+            
+    # When low == high, it points to the minimum element
+    return nums[low]
+
+def solve():
+    # Fast I/O to handle all tokens efficiently
+    input_data = sys.stdin.read().split()
+    if not input_data:
+        return
+        
+    iterator = iter(input_data)
+    
+    # Read number of test cases
+    t = int(next(iterator))
+    
+    out = []
+    for _ in range(t):
+        n = int(next(iterator))
+        
+        # Read the n elements of the array
+        nums = [int(next(iterator)) for _ in range(n)]
+        
+        # Calculate the minimum
+        result = findMin(nums)
+        out.append(str(result))
+        
+    # Print all results separated by newlines
+    sys.stdout.write('\n'.join(out) + '\n')
+
+if __name__ == '__main__':
+    solve()
