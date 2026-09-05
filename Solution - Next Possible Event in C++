@@ -1,0 +1,49 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+// Function to find the next event for each event
+vector<int> findNextEvent(vector<vector<int>> &events) {
+    int n = events.size();
+    vector<pair<int, int>> startTimes; // To store (start_time, original_index)
+    vector<int> result(n, -1);
+
+    // Fill startTimes with (start_time, original_index)
+    for (int i = 0; i < n; ++i) {
+        startTimes.emplace_back(events[i][0], i);
+    }
+
+    // Sort startTimes based on start_time
+    sort(startTimes.begin(), startTimes.end());
+
+    // For each event, find the next event with binary search
+    for (int i = 0; i < n; ++i) {
+        int endTime = events[i][1];
+
+        // Binary search to find the first event with start_time >= endTime
+        auto it = lower_bound(startTimes.begin(), startTimes.end(), make_pair(endTime, 0));
+
+        // If such an event exists, store its original index
+        if (it != startTimes.end()) {
+            result[i] = it->second;
+        }
+    }
+
+    return result;
+}
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<vector<int>> events(n, vector<int>(2));
+    for (int i = 0; i < n; ++i) {
+        cin >> events[i][0] >> events[i][1];
+    }
+    vector<int> result = findNextEvent(events);
+
+    for(int val: result) cout << val << " ";
+    
+    return 0;
+}
