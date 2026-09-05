@@ -1,0 +1,63 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+// Array to store all valid numbers of the form 2^x + 2^y
+vector<long long> valid_numbers;
+
+void precompute() {
+    // Generate all valid values where x != y
+    // 1LL avoids the compilation error and ensures 64-bit shifting
+    for (int i = 0; i <= 30; i++) {
+        for (int j = 0; j <= 30; j++) {
+            if (i != j) {
+                long long val = (1LL << i) + (1LL << j);
+                valid_numbers.push_back(val);
+            }
+        }
+    }
+    // Sort and remove duplicates to prepare for binary search
+    sort(valid_numbers.begin(), valid_numbers.end());
+    valid_numbers.erase(unique(valid_numbers.begin(), valid_numbers.end()), valid_numbers.end());
+}
+
+void solve() {
+    long long n;
+    cin >> n;
+
+    // Binary search for the first valid number >= n
+    auto it = lower_bound(valid_numbers.begin(), valid_numbers.end(), n);
+    
+    long long min_ops = 2e9; // Initialize with a large number
+
+    // Case 1: Check the valid number greater than or equal to N
+    if (it != valid_numbers.end()) {
+        min_ops = min(min_ops, *it - n);
+    }
+    
+    // Case 2: Check the valid number smaller than N (if it exists)
+    if (it != valid_numbers.begin()) {
+        min_ops = min(min_ops, n - *(it - 1));
+    }
+
+    cout << min_ops << "\n";
+}
+
+int main() {
+    // Fast I/O for 100,000 test cases
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    precompute();
+
+    int t;
+    cin >> t;
+    while (t--) {
+        solve();
+    }
+
+    return 0;
+}
