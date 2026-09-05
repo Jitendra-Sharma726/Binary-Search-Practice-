@@ -1,0 +1,56 @@
+import sys
+
+def canSplit(nums, max_sum, k):
+    subarray_count = 1
+    current_sum = 0
+    
+    for num in nums:
+        if current_sum + num > max_sum:
+            # Start a new contiguous subarray
+            subarray_count += 1
+            current_sum = num
+            
+            # Early exit if we exceed the allowed number of splits
+            if subarray_count > k:
+                return False
+        else:
+            current_sum += num
+            
+    return subarray_count <= k
+
+def splitArray(nums, k):
+    # The largest subarray sum must be at least equal to the largest single element
+    low = max(nums)
+    # The absolute upper ceiling is the sum of all elements
+    high = sum(nums)
+    ans = high
+    
+    while low <= high:
+        mid = (low + high) // 2
+        
+        if canSplit(nums, mid, k):
+            ans = mid        # mid is possible! Try to search for a smaller maximum sum
+            high = mid - 1
+        else:
+            low = mid + 1    # mid is too small, we need to allow a larger sum threshold
+            
+    return ans
+
+def solve():
+    # Fast I/O: parse tokens sequentially to safely handle large or multi-line custom inputs
+    input_data = sys.stdin.read().split()
+    if not input_data:
+        return
+        
+    iterator = iter(input_data)
+    
+    n = int(next(iterator))
+    k = int(next(iterator))
+    
+    nums = [int(next(iterator)) for _ in range(n)]
+    
+    result = splitArray(nums, k)
+    print(result)
+
+if __name__ == '__main__':
+    solve()
