@@ -1,0 +1,48 @@
+import sys
+
+def findKthPositive(nums, k):
+    left = 0
+    right = len(nums)
+
+    while left < right:
+        mid = (left + right) // 2
+
+        # Count of missing positive integers before nums[mid]
+        missing = nums[mid] - mid - 1
+
+        if missing >= k:
+            right = mid
+        else:
+            left = mid + 1
+
+    # 'left' tracks how many elements from the array are less than the target value.
+    # Shifting 'k' forward by 'left' skips over these existing numbers.
+    return k + left
+
+def solve():
+    # Fast I/O: read all text at once and split by any whitespace
+    input_data = sys.stdin.read().split()
+    if not input_data:
+        return
+        
+    iterator = iter(input_data)
+    
+    # Read total number of test cases
+    t = int(next(iterator))
+    
+    out = []
+    for _ in range(t):
+        n = int(next(iterator))
+        k = int(next(iterator))
+        
+        # Parse the strictly increasing sequence
+        nums = [int(next(iterator)) for _ in range(n)]
+        
+        result = findKthPositive(nums, k)
+        out.append(str(result))
+        
+    # Flush all output test cases collectively
+    sys.stdout.write('\n'.join(out) + '\n')
+
+if __name__ == '__main__':
+    solve()
