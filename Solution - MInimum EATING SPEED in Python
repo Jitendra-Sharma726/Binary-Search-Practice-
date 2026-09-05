@@ -1,0 +1,46 @@
+import sys
+
+def canFinish(piles, speed, h):
+    hours_needed = 0
+    for pile in piles:
+        # Equivalent to math.ceil(pile / speed) using integer division
+        hours_needed += (pile + speed - 1) // speed
+        # Early exit if we already exceed the allowed hours
+        if hours_needed > h:
+            return False
+    return hours_needed <= h
+
+def findMinK(piles, n, h):
+    low = 1
+    high = max(piles)
+    ans = high
+    
+    while low <= high:
+        mid = (low + high) // 2
+        
+        if canFinish(piles, mid, h):
+            ans = mid        # mid works, but let's check if a lower speed works
+            high = mid - 1
+        else:
+            low = mid + 1    # mid is too slow, increase the speed
+            
+    return ans
+
+def solve():
+    # Fast I/O to read input efficiently
+    input_data = sys.stdin.read().split()
+    if not input_data:
+        return
+        
+    iterator = iter(input_data)
+    
+    n = int(next(iterator))
+    h = int(next(iterator))
+    
+    piles = [int(next(iterator)) for _ in range(n)]
+    
+    result = findMinK(piles, n, h)
+    print(result)
+
+if __name__ == '__main__':
+    solve()
