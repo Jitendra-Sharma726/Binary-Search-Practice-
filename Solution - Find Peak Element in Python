@@ -1,0 +1,46 @@
+import sys
+
+def findPeakElement(nums):
+    low = 0
+    high = len(nums) - 1
+    
+    while low < high:
+        mid = (low + high) // 2
+        
+        # If the element to the right is greater, a peak must be on the right side
+        if nums[mid] < nums[mid + 1]:
+            low = mid + 1
+        # Otherwise, a peak must be on the left side (including mid)
+        else:
+            high = mid
+            
+    # low and high converge to a peak index
+    return low
+
+def solve():
+    # Fast I/O to parse inputs quickly
+    input_data = sys.stdin.read().split()
+    if not input_data:
+        return
+        
+    iterator = iter(input_data)
+    
+    # Read number of test cases
+    t = int(next(iterator))
+    
+    out = []
+    for _ in range(t):
+        n = int(next(iterator))
+        
+        # Read the N elements of the array
+        nums = [int(next(iterator)) for _ in range(n)]
+        
+        # Find peak index and record it
+        result = findPeakElement(nums)
+        out.append(str(result))
+        
+    # Flush all output results safely
+    sys.stdout.write('\n'.join(out) + '\n')
+
+if __name__ == '__main__':
+    solve()
