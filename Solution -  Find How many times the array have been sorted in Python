@@ -1,0 +1,51 @@
+import sys
+
+def countRotations(nums):
+    low = 0
+    high = len(nums) - 1
+    
+    # If the array is not rotated at all (already perfectly sorted)
+    if nums[low] <= nums[high]:
+        return 0
+        
+    while low < high:
+        mid = (low + high) // 2
+        
+        # If middle element is greater than the last element,
+        # the minimum element lies in the right half
+        if nums[mid] > nums[high]:
+            low = mid + 1
+        # Otherwise, the minimum element is at mid or in the left half
+        else:
+            high = mid
+            
+    # 'low' will converge exactly at the index of the minimum element
+    return low
+
+def solve():
+    # Fast I/O to parse inputs quickly
+    input_data = sys.stdin.read().split()
+    if not input_data:
+        return
+        
+    iterator = iter(input_data)
+    
+    # Read number of test cases
+    t = int(next(iterator))
+    
+    out = []
+    for _ in range(t):
+        n = int(next(iterator))
+        
+        # Read the N elements of the array
+        nums = [int(next(iterator)) for _ in range(n)]
+        
+        # Find the number of rotations and log it
+        result = countRotations(nums)
+        out.append(str(result))
+        
+    # Flush all output results safely
+    sys.stdout.write('\n'.join(out) + '\n')
+
+if __name__ == '__main__':
+    solve()
