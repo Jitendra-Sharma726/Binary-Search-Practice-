@@ -1,0 +1,492 @@
+# Book Allocation
+
+## Problem Statement
+
+You are given `N` books and `M` students.
+
+The `i-th` book contains `A[i]` pages.
+
+You need to distribute **all books** among the students following these rules:
+
+1. Every student must receive **at least one book**.
+2. Each book can be assigned to **only one student**.
+3. Books assigned to a student must be **contiguous** (next to each other).
+4. The goal is to **minimize the maximum number of pages** assigned to any student.
+
+If it is impossible to give at least one book to every student, return `-1`.
+
+---
+
+## Example
+
+Suppose:
+
+```text
+A = [12, 34, 67, 90]
+M = 2
+```
+
+One valid allocation is:
+
+```text
+Student 1 → [12, 34, 67] = 113 pages
+Student 2 → [90]        = 90 pages
+```
+
+The maximum pages assigned to a student is:
+
+```text
+113
+```
+
+So the answer is:
+
+```text
+113
+```
+
+---
+
+## Input Format
+
+```text
+N M
+A[0] A[1] ... A[N-1]
+```
+
+Where:
+
+* `N` = number of books
+* `M` = number of students
+* `A[i]` = number of pages in the `i-th` book
+
+---
+
+## Output Format
+
+Print:
+
+* The minimum possible value of the **maximum pages assigned to a student**.
+* `-1` if the books cannot be allocated to all students.
+
+---
+
+## Constraints
+
+* `1 ≤ N, M ≤ 10^4`
+* `1 ≤ A[i] ≤ 10^5`
+
+---
+
+# Approach
+
+This is a classic **Binary Search on Answer** problem.
+
+We don't binary-search an index. Instead, we binary-search the possible value of the **maximum pages a student can receive**.
+
+## Step 1: Find the Search Range
+
+The minimum possible answer is:
+
+```text
+max(A)
+```
+
+Why?
+
+Because every book must go to some student. A student who receives the largest book must get at least that many pages.
+
+The maximum possible answer is:
+
+```text
+sum(A)
+```
+
+This happens when one student receives all the books.
+
+So:
+
+```text
+low  = max(A)
+high = sum(A)
+```
+
+---
+
+# Step 2: Check a Possible Maximum
+
+Suppose we guess:
+
+```text
+maximum_pages = 113
+```
+
+We greedily assign consecutive books to the current student until adding another book would exceed `113`.
+
+For:
+
+```text
+[12, 34, 67, 90]
+```
+
+We get:
+
+```text
+Student 1 → 12 + 34 + 67 = 113
+Student 2 → 90
+```
+
+Only `2` students are needed, so `113` is possible.
+
+---
+
+# Step 3: Binary Search
+
+If a particular maximum page limit is possible, we try a **smaller** limit.
+
+If it is not possible, we need a **larger** limit.
+
+Therefore:
+
+```text
+Possible → high = mid
+Impossible → low = mid + 1
+```
+
+Continue until:
+
+```text
+low == high
+```
+
+That value is the answer.
+
+---
+
+# Important Case
+
+If:
+
+```text
+M > N
+```
+
+there are more students than books.
+
+Since every student must receive at least one book, allocation is impossible.
+
+Therefore:
+
+```text
+return -1
+```
+
+---
+
+# Algorithm
+
+1. If `M > N`, return `-1`.
+2. Set:
+
+   ```text
+   low = max(A)
+   high = sum(A)
+   ```
+3. While `low < high`:
+
+   * Calculate:
+
+     ```text
+     mid = (low + high) // 2
+     ```
+   * Check how many students are required if no student can receive more than `mid` pages.
+   * If the required number of students is `<= M`:
+
+     * `mid` is possible.
+     * Search for a smaller answer.
+   * Otherwise:
+
+     * `mid` is too small.
+     * Search for a larger answer.
+4. Return `low`.
+
+---
+
+# Python Solution
+
+```python
+def can_allocate(books, students, max_pages):
+    students_needed = 1
+    current_pages = 0
+
+    for pages in books:
+        # Add book to current student
+        if current_pages + pages <= max_pages:
+            current_pages += pages
+
+        # Give book to the next student
+        else:
+            students_needed += 1
+            current_pages = pages
+
+            # Too many students are required
+            if students_needed > students:
+                return False
+
+    return True
+
+
+def book_allocation(books, students):
+
+    n = len(books)
+
+    # More students than books
+    if students > n:
+        return -1
+
+    low = max(books)
+    high = sum(books)
+
+    while low < high:
+        mid = (low + high) // 2
+
+        if can_allocate(books, students, mid):
+            # Possible, try a smaller maximum
+            high = mid
+        else:
+            # Not possible, need a larger maximum
+            low = mid + 1
+
+    return low
+
+
+# Input
+n, m = map(int, input().split())
+books = list(map(int, input().split()))
+
+print(book_allocation(books, m))
+```
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+N = 4
+M = 2
+
+Books = [12, 34, 67, 90]
+```
+
+## Search Range
+
+```text
+low = max(12, 34, 67, 90)
+    = 90
+
+high = 12 + 34 + 67 + 90
+     = 203
+```
+
+So we search between:
+
+```text
+90 → 203
+```
+
+Suppose we test:
+
+```text
+mid = 146
+```
+
+Allocation:
+
+```text
+Student 1 → 12 + 34 + 67 = 113
+Student 2 → 90
+```
+
+Only 2 students are needed.
+
+Therefore `146` is possible.
+
+We try a smaller value.
+
+Eventually, we test:
+
+```text
+113
+```
+
+Allocation:
+
+```text
+Student 1 → 12 + 34 + 67 = 113
+Student 2 → 90
+```
+
+This is also possible.
+
+Try anything smaller than `113`:
+
+```text
+Student 1 → 12 + 34 + 67
+```
+
+already requires `113` pages, so it cannot be done within `2` students.
+
+Therefore:
+
+```text
+Answer = 113
+```
+
+---
+
+# Example 1
+
+### Input
+
+```text
+4 2
+12 34 67 90
+```
+
+### Output
+
+```text
+113
+```
+
+### Allocation
+
+```text
+Student 1 → 12 + 34 + 67 = 113
+Student 2 → 90
+```
+
+Maximum:
+
+```text
+113
+```
+
+---
+
+# Example 2
+
+### Input
+
+```text
+5 4
+25 46 28 49 24
+```
+
+### Output
+
+```text
+71
+```
+
+### Allocation
+
+```text
+Student 1 → 25 + 46 = 71
+Student 2 → 28
+Student 3 → 49
+Student 4 → 24
+```
+
+Maximum:
+
+```text
+71
+```
+
+---
+
+# Complexity Analysis
+
+Let:
+
+```text
+N = number of books
+S = sum of all pages
+```
+
+For every binary-search step, we scan all books once.
+
+### Time Complexity
+
+```text
+O(N log S)
+```
+
+### Auxiliary Space
+
+```text
+O(1)
+```
+
+The input array itself requires `O(N)` space.
+
+---
+
+# Why Greedy Works
+
+For a fixed maximum page limit, we should give each student as many consecutive books as possible without exceeding that limit.
+
+For example, with a limit of `100`:
+
+```text
+[20, 30, 40, 50]
+```
+
+We assign:
+
+```text
+Student 1 → 20 + 30 + 40 = 90
+Student 2 → 50
+```
+
+This uses the **minimum number of students** for that particular limit.
+
+If even this greedy strategy requires more than `M` students, no other valid allocation can work with that limit.
+
+---
+
+# Key Takeaway
+
+The important pattern is:
+
+```text
+Binary Search on Answer
+        +
+Greedy Validation
+```
+
+The answer lies between:
+
+```text
+max(A)  and  sum(A)
+```
+
+For each candidate maximum:
+
+```text
+Can we allocate all books using at most M students?
+```
+
+* **Yes** → try a smaller maximum.
+* **No** → try a larger maximum.
+
+Finally:
+
+```text
+low == high
+```
+
+gives the minimum possible maximum pages.
