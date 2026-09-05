@@ -1,0 +1,465 @@
+# 🔢 The Divisor Game
+
+## Problem Statement
+
+You are given an array `A` containing `N` positive integers and an integer `T` called the **threshold**.
+
+Find the **smallest positive integer `D`** such that:
+
+```text
+ceil(A[0] / D) + ceil(A[1] / D) + ... + ceil(A[N-1] / D) <= T
+```
+
+Here, `ceil(x)` means rounding `x` **up** to the nearest integer.
+
+---
+
+## Example
+
+Given:
+
+```text
+A = [3, 7, 10]
+T = 8
+```
+
+Try `D = 3`:
+
+```text
+ceil(3 / 3)  = 1
+ceil(7 / 3)  = 3
+ceil(10 / 3) = 4
+```
+
+Total:
+
+```text
+1 + 3 + 4 = 8
+```
+
+Since `8 <= T`, `D = 3` is valid.
+
+Therefore, the answer is:
+
+```text
+3
+```
+
+---
+
+## Input Format
+
+The first line contains two integers:
+
+```text
+N T
+```
+
+The second line contains `N` space-separated integers:
+
+```text
+A[0] A[1] ... A[N-1]
+```
+
+---
+
+## Output Format
+
+Print the **smallest positive integer `D`** for which:
+
+```text
+sum(ceil(A[i] / D)) <= T
+```
+
+---
+
+## Constraints
+
+* `1 ≤ N ≤ 5 × 10⁴`
+* `1 ≤ A[i] ≤ 10⁶`
+* `N ≤ T ≤ 10⁶`
+* A valid divisor is guaranteed to exist.
+
+---
+
+# Approach
+
+This problem can be solved using **Binary Search on Answer**.
+
+We are looking for the smallest value of `D`.
+
+### Why Binary Search?
+
+As `D` increases:
+
+```text
+D increases
+    ↓
+A[i] / D decreases
+    ↓
+ceil(A[i] / D) decreases
+    ↓
+Total sum decreases
+```
+
+So the condition is monotonic.
+
+For example:
+
+```text
+D = 1  → Sum too large ❌
+D = 2  → Sum too large ❌
+D = 3  → Valid ✅
+D = 4  → Valid ✅
+D = 5  → Valid ✅
+...
+```
+
+We need the **first valid `D`**, which makes Binary Search ideal.
+
+---
+
+# Search Range
+
+The smallest possible divisor is:
+
+```text
+1
+```
+
+The largest useful divisor is:
+
+```text
+max(A)
+```
+
+So:
+
+```text
+low = 1
+high = max(A)
+```
+
+---
+
+# Ceiling Division
+
+We need to calculate:
+
+```text
+ceil(x / D)
+```
+
+without using floating-point arithmetic.
+
+Use:
+
+```python
+(x + D - 1) // D
+```
+
+For example:
+
+```text
+x = 10
+D = 3
+
+(10 + 3 - 1) // 3
+= 12 // 3
+= 4
+```
+
+Therefore:
+
+```text
+ceil(10 / 3) = 4
+```
+
+---
+
+# Algorithm
+
+1. Set `low = 1`.
+2. Set `high = max(A)`.
+3. While `low <= high`:
+
+   * Calculate:
+
+     ```text
+     mid = (low + high) // 2
+     ```
+   * Calculate the total sum using divisor `mid`.
+4. If:
+
+   ```text
+   total <= T
+   ```
+
+   then `mid` is valid:
+
+   * Store `mid`.
+   * Search for a smaller divisor.
+5. Otherwise:
+
+   * `mid` is too small.
+   * Search for a larger divisor.
+6. Return the smallest valid divisor.
+
+---
+
+# Python Solution
+
+```python
+def findSmallestDivisor(A, T):
+    low = 1
+    high = max(A)
+
+    answer = high
+
+    while low <= high:
+        mid = (low + high) // 2
+
+        total = 0
+
+        for x in A:
+            total += (x + mid - 1) // mid
+
+            # No need to continue if already above T
+            if total > T:
+                break
+
+        if total <= T:
+            # mid is a valid divisor
+            answer = mid
+            high = mid - 1
+        else:
+            # mid is too small
+            low = mid + 1
+
+    return answer
+
+
+# Input
+N, T = map(int, input().split())
+A = list(map(int, input().split()))
+
+# Output
+print(findSmallestDivisor(A, T))
+```
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+A = [3, 7, 10]
+T = 8
+```
+
+Initial range:
+
+```text
+low = 1
+high = 10
+```
+
+### Try D = 5
+
+```text
+ceil(3 / 5)  = 1
+ceil(7 / 5)  = 2
+ceil(10 / 5) = 2
+```
+
+Total:
+
+```text
+1 + 2 + 2 = 5
+```
+
+Since:
+
+```text
+5 <= 8
+```
+
+`D = 5` works.
+
+But we want the smallest divisor, so search left.
+
+---
+
+### Try D = 2
+
+```text
+ceil(3 / 2)  = 2
+ceil(7 / 2)  = 4
+ceil(10 / 2) = 5
+```
+
+Total:
+
+```text
+2 + 4 + 5 = 11
+```
+
+Since:
+
+```text
+11 > 8
+```
+
+`D = 2` is too small.
+
+Search right.
+
+---
+
+### Try D = 3
+
+```text
+ceil(3 / 3)  = 1
+ceil(7 / 3)  = 3
+ceil(10 / 3) = 4
+```
+
+Total:
+
+```text
+1 + 3 + 4 = 8
+```
+
+Since:
+
+```text
+8 <= 8
+```
+
+`D = 3` works.
+
+No smaller divisor works, so:
+
+```text
+Answer = 3
+```
+
+---
+
+# Example 1
+
+### Input
+
+```text
+3 8
+3 7 10
+```
+
+### Output
+
+```text
+3
+```
+
+### Explanation
+
+For `D = 3`:
+
+```text
+ceil(3/3) + ceil(7/3) + ceil(10/3)
+= 1 + 3 + 4
+= 8
+```
+
+Since `8 <= T`, the divisor is valid.
+
+---
+
+# Example 2
+
+### Input
+
+```text
+6 12
+8 16 24 4 2 6
+```
+
+### Output
+
+```text
+6
+```
+
+For `D = 6`:
+
+```text
+ceil(8/6)  = 2
+ceil(16/6) = 3
+ceil(24/6) = 4
+ceil(4/6)  = 1
+ceil(2/6)  = 1
+ceil(6/6)  = 1
+```
+
+Total:
+
+```text
+2 + 3 + 4 + 1 + 1 + 1 = 12
+```
+
+Therefore, `D = 6` is valid and is the smallest possible divisor.
+
+---
+
+# Complexity
+
+Let:
+
+* `N` = number of elements
+* `M` = maximum value in `A`
+
+Each binary-search step checks all elements.
+
+### Time Complexity
+
+```text
+O(N log M)
+```
+
+### Space Complexity
+
+```text
+O(1)
+```
+
+No extra data structure is required.
+
+---
+
+# Key Takeaway
+
+This is a classic **Binary Search on Answer** problem.
+
+The important pattern is:
+
+```text
+Possible Answers
+      ↓
+Binary Search
+      ↓
+Check(mid)
+      ↓
+ ┌───────────────┐
+ │               │
+Valid          Invalid
+ │               │
+ ↓               ↓
+Search Left   Search Right
+      ↓
+Smallest Valid Answer
+```
+
+### Remember
+
+> If a problem asks for the **minimum value** that satisfies a **monotonic condition**, try **Binary Search on Answer**.
