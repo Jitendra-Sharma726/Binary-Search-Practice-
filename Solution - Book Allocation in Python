@@ -1,0 +1,60 @@
+import sys
+
+def canAllocate(A, max_pages, total_students):
+    student_count = 1
+    current_pages = 0
+    
+    for pages in A:
+        if current_pages + pages > max_pages:
+            # Assign to the next student
+            student_count += 1
+            current_pages = pages
+            
+            # Early exit if we exceed the available number of students
+            if student_count > total_students:
+                return False
+        else:
+            current_pages += pages
+            
+    return student_count <= total_students
+
+def solveBookAllocation(A, n, m):
+    # Corner Case: More students than books means someone gets left out
+    if m > n:
+        return -1
+        
+    # The max threshold must be at least the largest single book
+    low = max(A)
+    # The absolute upper ceiling is the sum of all pages
+    high = sum(A)
+    ans = -1
+    
+    while low <= high:
+        mid = (low + high) // 2
+        
+        if canAllocate(A, mid, m):
+            ans = mid        # mid works! Let's check if a smaller allocation threshold works
+            high = mid - 1
+        else:
+            low = mid + 1    # mid is too small, we need to allow more pages per student
+            
+    return ans
+
+def solve():
+    # Fast I/O: parsing tokens directly to avoid string splits over multi-line custom inputs
+    input_data = sys.stdin.read().split()
+    if not input_data:
+        return
+        
+    iterator = iter(input_data)
+    
+    n = int(next(iterator))
+    m = int(next(iterator))
+    
+    A = [int(next(iterator)) for _ in range(n)]
+    
+    result = solveBookAllocation(A, n, m)
+    print(result)
+
+if __name__ == '__main__':
+    solve()
