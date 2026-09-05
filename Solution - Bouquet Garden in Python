@@ -1,0 +1,70 @@
+import sys
+
+def can_make_bouquets(bloomDay, m, k, day):
+    bouquets = 0
+    consecutive = 0
+
+    for bloom in bloomDay:
+        if bloom <= day:
+            consecutive += 1
+            # We have found enough adjacent flowers to form a single bouquet
+            if consecutive == k:
+                bouquets += 1
+                consecutive = 0
+                
+                # Optimization: Early exit if we already met the target bouquet count
+                if bouquets >= m:
+                    return True
+        else:
+            # The adjacency chain is broken by an unbloomed flower
+            consecutive = 0
+
+    return bouquets >= m
+
+
+def minDays(bloomDay, m, k):
+    n = len(bloomDay)
+
+    # Core Impossibility Check: Not enough total flowers to fulfill requirements
+    if m * k > n:
+        return -1
+
+    low = min(bloomDay)
+    high = max(bloomDay)
+    answer = -1
+
+    # Standard Binary Search on the timeline range
+    while low <= high:
+        mid = (low + high) // 2
+
+        if can_make_bouquets(bloomDay, m, k, mid):
+            answer = mid
+            high = mid - 1  # Try to look for a smaller/earlier valid day
+        else:
+            low = mid + 1   # More days are required for enough flowers to bloom
+
+    return answer
+
+
+def solve():
+    # Fast I/O: Safely absorbs all tokens regardless of irregular line breaks
+    input_data = sys.stdin.read().split()
+    if not input_data:
+        return
+        
+    iterator = iter(input_data)
+    
+    # Parse N, m, k
+    n = int(next(iterator))
+    m = int(next(iterator))
+    k = int(next(iterator))
+    
+    # Parse the entire bloomDay array
+    bloomDay = [int(next(iterator)) for _ in range(n)]
+    
+    # Compute and output the result
+    result = minDays(bloomDay, m, k)
+    print(result)
+
+if __name__ == '__main__':
+    solve()
