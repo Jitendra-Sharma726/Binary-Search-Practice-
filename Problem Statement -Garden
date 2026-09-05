@@ -1,0 +1,335 @@
+# 🌸 Garden — K-th Smallest Element
+
+## Problem Statement
+
+You are given an `N × N` matrix representing a garden.
+
+The matrix has the following property:
+
+* Every row is sorted in **ascending order**.
+* Every column is sorted in **ascending order**.
+
+Your task is to find the **K-th smallest element** in the entire matrix.
+
+> The K-th smallest element is based on its **position in the sorted order**, not on unique values.
+> If a value appears multiple times, each occurrence is counted separately.
+
+### Important
+
+The solution should use **constant extra space** apart from the input matrix.
+
+---
+
+## Input Format
+
+* The first line contains two integers `N` and `K`.
+* The next `N` lines contain `N` space-separated integers representing the matrix.
+
+### Input
+
+```text
+N K
+matrix[0][0] matrix[0][1] ... matrix[0][N-1]
+...
+matrix[N-1][0] matrix[N-1][1] ... matrix[N-1][N-1]
+```
+
+---
+
+## Output Format
+
+Print a single integer representing the **K-th smallest element** in the matrix.
+
+---
+
+## Constraints
+
+* `1 ≤ N ≤ 400`
+* `1 ≤ matrix[i][j] ≤ 10^5`
+* `1 ≤ K ≤ N × N`
+
+---
+
+## Example
+
+### Input
+
+```text
+3 8
+1 5 9
+10 11 13
+12 13 15
+```
+
+### Sorted Elements
+
+```text
+1, 5, 9, 10, 11, 12, 13, 13, 15
+```
+
+The 8-th smallest element is:
+
+```text
+13
+```
+
+### Output
+
+```text
+13
+```
+
+---
+
+# Approach
+
+A simple approach would be to put all `N²` elements into another array and sort them.
+
+However, the problem asks us to avoid extra space.
+
+Instead, we use **Binary Search on the Answer**.
+
+### Key Observation
+
+The smallest possible answer is the smallest element in the matrix:
+
+```text
+matrix[0][0]
+```
+
+The largest possible answer is:
+
+```text
+matrix[N-1][N-1]
+```
+
+We binary search between these two values.
+
+For every candidate value `mid`, we count how many elements in the matrix are:
+
+```text
+≤ mid
+```
+
+If there are at least `K` such elements, then the K-th smallest element is `≤ mid`.
+
+Otherwise, it must be greater than `mid`.
+
+---
+
+# Counting Elements ≤ X
+
+Because every row and column is sorted, we can count elements `≤ X` efficiently.
+
+Start from the **bottom-left corner**:
+
+```text
+        columns
+       ↓ ↓ ↓
+      1 5 9
+     10 11 13
+     12 13 15
+     ↑
+```
+
+For each position:
+
+* If `matrix[row][col] ≤ X`, then every element to its **left** in that row is also `≤ X`.
+* Therefore, we can add `col + 1` elements and move **up**.
+* If `matrix[row][col] > X`, move **right**.
+
+This counts all elements `≤ X` in `O(N)` time.
+
+---
+
+# Algorithm
+
+1. Set:
+
+   * `low = matrix[0][0]`
+   * `high = matrix[N-1][N-1]`
+
+2. While `low < high`:
+
+   * Calculate `mid`.
+   * Count how many elements are `≤ mid`.
+   * If the count is at least `K`:
+
+     * Search the left half.
+   * Otherwise:
+
+     * Search the right half.
+
+3. When `low == high`, that value is the K-th smallest element.
+
+---
+
+# Python Solution
+
+```python
+def count_less_equal(matrix, n, target):
+    """
+    Count how many elements are <= target.
+    Matrix rows and columns are sorted.
+    """
+    row = n - 1
+    col = 0
+    count = 0
+
+    while row >= 0 and col < n:
+        if matrix[row][col] <= target:
+            # All elements above this position in this column
+            # are also <= target.
+            count += row + 1
+            col += 1
+        else:
+            row -= 1
+
+    return count
+
+
+def kth_smallest(matrix, n, k):
+    low = matrix[0][0]
+    high = matrix[n - 1][n - 1]
+
+    while low < high:
+        mid = (low + high) // 2
+
+        count = count_less_equal(matrix, n, mid)
+
+        if count >= k:
+            high = mid
+        else:
+            low = mid + 1
+
+    return low
+
+
+# Input
+n, k = map(int, input().split())
+
+matrix = []
+for _ in range(n):
+    matrix.append(list(map(int, input().split())))
+
+# Output
+print(kth_smallest(matrix, n, k))
+```
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+1   5   9
+10  11  13
+12  13  15
+```
+
+We need:
+
+```text
+K = 8
+```
+
+The answer must be between:
+
+```text
+low  = 1
+high = 15
+```
+
+Suppose:
+
+```text
+mid = 8
+```
+
+Count elements `≤ 8`:
+
+```text
+1, 5
+```
+
+Count:
+
+```text
+2
+```
+
+Since:
+
+```text
+2 < 8
+```
+
+the answer must be greater than `8`.
+
+Binary search continues.
+
+Eventually:
+
+```text
+low = 13
+high = 13
+```
+
+Therefore:
+
+```text
+Answer = 13
+```
+
+---
+
+# Complexity
+
+Let `N` be the size of the matrix.
+
+### Time Complexity
+
+Counting elements for one value takes:
+
+```text
+O(N)
+```
+
+Binary search takes:
+
+```text
+O(log(maxValue - minValue))
+```
+
+Therefore:
+
+```text
+O(N × log(maxValue - minValue))
+```
+
+Since `matrix[i][j] ≤ 10^5`, this is very efficient.
+
+### Space Complexity
+
+```text
+O(1)
+```
+
+No additional array is created.
+
+---
+
+# Key Takeaway
+
+This problem demonstrates an important **Binary Search on Answer** technique.
+
+Instead of searching directly for the K-th element:
+
+1. Guess an answer `mid`.
+2. Count how many elements are `≤ mid`.
+3. Use that count to decide which half to search.
+
+The sorted rows and columns allow us to perform the counting step efficiently.
+
+> **Pattern:** Binary Search on Answer + Sorted Matrix
