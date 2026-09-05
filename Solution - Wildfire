@@ -1,0 +1,50 @@
+#include <bits/stdc++.h>
+using namespace std;
+bool check(vector<int>& houses, vector<int>& sprinklers, int r){
+    int n = houses.size();
+    vector<int> extinguished(n, 0);
+    for(int s: sprinklers) {
+        int left = lower_bound(begin(houses), end(houses), s - r) - houses.begin();
+        int right = upper_bound(begin(houses), end(houses), s + r) - houses.begin();
+        if(left != n)
+            extinguished[left]++;
+        if(right < n)
+            extinguished[right]--;
+    }
+    for(int i = 0; i < n; i++){
+        if(i > 0)
+            extinguished[i] += extinguished[i - 1];
+        if(extinguished[i] <= 0)
+            return false;
+    }
+    return true;
+}
+
+int findRadius(vector<int>& houses, vector<int>& sprinklers) {
+    sort(begin(houses), end(houses));
+    sort(begin(sprinklers), end(sprinklers));
+    int low = 0, high = 1e9, mid, ans;
+    while(low <= high){
+        mid = (low + high) / 2;
+        if(check(houses, sprinklers, mid)){
+            ans = mid;
+            high = mid - 1;
+        } else {
+            low = mid + 1;
+        }
+    }
+    return ans;
+}
+int main() {
+    int n, m;
+    cin >> n;
+    vector<int> houses(n);
+    for(int &val: houses)
+      cin >> val;
+    cin >> m;
+    vector<int> sprinklers(m);
+    for(int &val: sprinklers)
+      cin >> val;
+    cout << findRadius(houses, sprinklers);
+    return 0;
+}
