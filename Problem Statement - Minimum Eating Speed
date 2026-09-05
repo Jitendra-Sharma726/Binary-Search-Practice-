@@ -1,0 +1,497 @@
+# 🍌 Minimum Eating Speed
+
+## Problem Statement
+
+You are given `N` piles of fruits.
+
+The `i-th` pile contains `piles[i]` fruits, and you have `H` hours to finish eating all the fruits.
+
+You can choose an eating speed of **K fruits per hour**.
+
+### Rules
+
+* In each hour, you can eat from **one pile only**.
+* You can eat at most `K` fruits from that pile.
+* If the pile contains fewer than `K` fruits, you eat all remaining fruits and that hour is still counted.
+* You can switch to another pile in the next hour.
+
+Your task is to find the **minimum integer value of `K`** that allows you to finish all piles within `H` hours.
+
+---
+
+## Example
+
+Suppose:
+
+```text
+piles = [4, 8, 5]
+H = 5
+```
+
+If:
+
+```text
+K = 4
+```
+
+Then:
+
+```text
+Pile 1: 4 fruits → 1 hour
+Pile 2: 8 fruits → 2 hours
+Pile 3: 5 fruits → 2 hours
+```
+
+Total:
+
+```text
+1 + 2 + 2 = 5 hours
+```
+
+So `K = 4` is sufficient.
+
+A smaller speed would require more than `5` hours.
+
+Therefore:
+
+```text
+Answer = 4
+```
+
+---
+
+# Key Observation
+
+We need to find the **minimum possible eating speed**.
+
+The answer lies between:
+
+```text
+1
+```
+
+and:
+
+```text
+max(piles)
+```
+
+For example:
+
+```text
+piles = [4, 8, 5]
+```
+
+So:
+
+```text
+K ∈ [1, 8]
+```
+
+Instead of trying every possible `K`, we use **Binary Search**.
+
+---
+
+# How to Calculate Required Hours?
+
+For a pile containing `x` fruits and eating speed `K`:
+
+```text
+hours = ceil(x / K)
+```
+
+In Python, we can calculate this without floating-point arithmetic:
+
+```python
+hours = (x + K - 1) // K
+```
+
+For example:
+
+```text
+x = 8
+K = 3
+
+hours = ceil(8 / 3)
+      = 3
+```
+
+---
+
+# Binary Search
+
+For every possible speed `K`, we check:
+
+> Can all fruits be eaten within `H` hours?
+
+### If required hours ≤ H
+
+The speed is sufficient.
+
+We try a **smaller speed**:
+
+```text
+right = mid - 1
+```
+
+### If required hours > H
+
+The speed is too slow.
+
+We need a **larger speed**:
+
+```text
+left = mid + 1
+```
+
+---
+
+# Algorithm
+
+1. Set:
+
+   ```text
+   left = 1
+   right = max(piles)
+   ```
+
+2. While `left <= right`:
+
+   * Calculate:
+
+     ```text
+     mid = (left + right) // 2
+     ```
+   * Calculate the total hours required using speed `mid`.
+   * If total hours `<= H`:
+
+     * Store `mid` as a possible answer.
+     * Search for a smaller speed.
+   * Otherwise:
+
+     * Search for a larger speed.
+
+3. Return the minimum valid speed.
+
+---
+
+# Python Solution
+
+```python
+def findMinK(piles, H):
+    left = 1
+    right = max(piles)
+
+    answer = right
+
+    while left <= right:
+        mid = (left + right) // 2
+
+        # Calculate required hours at speed mid
+        hours = 0
+
+        for pile in piles:
+            hours += (pile + mid - 1) // mid
+
+        if hours <= H:
+            # mid is fast enough
+            answer = mid
+            right = mid - 1
+        else:
+            # mid is too slow
+            left = mid + 1
+
+    return answer
+
+
+# Input
+N, H = map(int, input().split())
+piles = list(map(int, input().split()))
+
+# Output
+print(findMinK(piles, H))
+```
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+N = 3
+H = 5
+
+piles = [4, 8, 5]
+```
+
+Initial search range:
+
+```text
+left = 1
+right = 8
+```
+
+### Step 1
+
+```text
+mid = 4
+```
+
+Required hours:
+
+```text
+4 / 4 = 1 hour
+8 / 4 = 2 hours
+5 / 4 = 2 hours
+```
+
+Total:
+
+```text
+5 hours
+```
+
+Since:
+
+```text
+5 <= H
+```
+
+`K = 4` works.
+
+Try a smaller speed:
+
+```text
+right = 3
+```
+
+---
+
+### Step 2
+
+```text
+mid = 2
+```
+
+Required hours:
+
+```text
+4 / 2 = 2
+8 / 2 = 4
+5 / 2 = 3
+```
+
+Total:
+
+```text
+9 hours
+```
+
+Since:
+
+```text
+9 > 5
+```
+
+`K = 2` is too slow.
+
+Search higher:
+
+```text
+left = 3
+```
+
+---
+
+### Step 3
+
+```text
+mid = 3
+```
+
+Required hours:
+
+```text
+4 → 2 hours
+8 → 3 hours
+5 → 2 hours
+```
+
+Total:
+
+```text
+7 hours
+```
+
+Still too slow.
+
+So:
+
+```text
+left = 4
+```
+
+Now:
+
+```text
+left > right
+```
+
+The minimum valid speed is:
+
+```text
+4
+```
+
+---
+
+# Example 1
+
+### Input
+
+```text
+3 5
+4 8 5
+```
+
+### Output
+
+```text
+4
+```
+
+---
+
+# Example 2
+
+### Input
+
+```text
+5 10
+2 4 6 8 10
+```
+
+### Output
+
+```text
+4
+```
+
+At `K = 4`:
+
+```text
+2  → 1 hour
+4  → 1 hour
+6  → 2 hours
+8  → 2 hours
+10 → 3 hours
+```
+
+Total:
+
+```text
+1 + 1 + 2 + 2 + 3 = 9 hours
+```
+
+So `K = 4` is enough to finish within `10` hours.
+
+---
+
+# Complexity
+
+Let:
+
+* `N` = number of piles
+* `M` = maximum pile size
+
+For each binary-search step, we check all `N` piles.
+
+### Time Complexity
+
+```text
+O(N × log M)
+```
+
+### Space Complexity
+
+```text
+O(1)
+```
+
+Only a few variables are used.
+
+---
+
+# Why Binary Search?
+
+The important property is **monotonicity**.
+
+If a speed `K` is sufficient, then every speed greater than `K` is also sufficient.
+
+For example:
+
+```text
+K = 4  → works
+K = 5  → works
+K = 6  → works
+K = 7  → works
+K = 8  → works
+```
+
+But:
+
+```text
+K = 1  → too slow
+K = 2  → too slow
+K = 3  → too slow
+```
+
+So the search space looks like:
+
+```text
+Too Slow      Minimum       Fast Enough
+   ❌             ✅              ✅
+1  2  3  |        4        |  5  6  7  8
+```
+
+This is exactly the type of problem where **Binary Search on Answer** works well.
+
+---
+
+# Key Takeaway
+
+When you need to find the **minimum value** that satisfies a condition, ask:
+
+> **Is the condition monotonic?**
+
+Here:
+
+```text
+Speed increases
+      ↓
+Eating time decreases
+      ↓
+Eventually H hours becomes achievable
+```
+
+Therefore, we can efficiently find the minimum eating speed using:
+
+```text
+Binary Search on Answer
+```
+
+### Pattern
+
+```text
+Possible Answer Range
+        ↓
+Binary Search
+        ↓
+Check if mid is valid
+        ↓
+Too Slow → Increase speed
+Fast Enough → Decrease speed
+        ↓
+Minimum Valid Answer
+```
