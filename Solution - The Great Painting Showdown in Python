@@ -1,0 +1,59 @@
+import sys
+
+def canPaint(C, max_len, total_painters):
+    painter_count = 1
+    current_len = 0
+    
+    for length in C:
+        if current_len + length > max_len:
+            # Assign the current board to a new painter
+            painter_count += 1
+            current_len = length
+            
+            # Early exit if we exceed the number of available painters
+            if painter_count > total_painters:
+                return False
+        else:
+            current_len += length
+            
+    return painter_count <= total_painters
+
+def minTime(A, B, C):
+    # The max threshold for any painter must be at least the longest single board
+    low = max(C)
+    # The absolute upper ceiling is the sum of all board lengths
+    high = sum(C)
+    ans_len = high
+    
+    while low <= high:
+        mid = (low + high) // 2
+        
+        if canPaint(C, mid, A):
+            ans_len = mid        # mid works! Try to search for a tighter length constraint
+            high = mid - 1
+        else:
+            low = mid + 1        # mid is too small, we need to allow a higher length threshold
+            
+    # Calculate the total time and take modulo 10000003 at the very end
+    MOD = 10000003
+    return (ans_len * B) % MOD
+
+def solve():
+    # Fast I/O: parse tokens sequentially to handle large input arrays cleanly
+    input_data = sys.stdin.read().split()
+    if not input_data:
+        return
+        
+    iterator = iter(input_data)
+    
+    a = int(next(iterator))
+    b = int(next(iterator))
+    n = int(next(iterator))
+    
+    C = [int(next(iterator)) for _ in range(n)]
+    
+    result = minTime(a, b, C)
+    print(result)
+
+if __name__ == '__main__':
+    solve()
