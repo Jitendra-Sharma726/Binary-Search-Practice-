@@ -1,0 +1,475 @@
+# 🚚 Truck Driver Problem
+
+## Problem Statement
+
+A logistics company needs to deliver `N` containers within `days` days.
+
+Each container has a weight given in the array `weights`.
+
+The containers **must be shipped in the given order**.
+
+Each day:
+
+* The truck can carry multiple consecutive containers.
+* The total weight carried that day cannot exceed the truck's capacity.
+* A container cannot be split between different days.
+
+Your task is to find the **minimum truck capacity** that allows all containers to be delivered within `days` days.
+
+---
+
+## Example
+
+Given:
+
+```text
+weights = [5, 8, 3, 2, 7, 4, 6]
+days = 4
+```
+
+The minimum capacity is:
+
+```text
+11
+```
+
+One possible schedule is:
+
+```text
+Day 1 → 5
+Day 2 → 8 + 3 = 11
+Day 3 → 2 + 7 = 9
+Day 4 → 4 + 6 = 10
+```
+
+All containers are delivered in exactly `4` days.
+
+Therefore:
+
+```text
+Answer = 11
+```
+
+---
+
+# Input Format
+
+The first line contains the number of test cases `T`.
+
+For each test case:
+
+### First line
+
+```text
+N days
+```
+
+where:
+
+* `N` = number of containers
+* `days` = maximum number of days available
+
+### Second line
+
+```text
+weights[0] weights[1] ... weights[N-1]
+```
+
+The weights of the containers in delivery order.
+
+---
+
+# Output Format
+
+For each test case, print:
+
+```text
+minimum truck capacity
+```
+
+---
+
+# Constraints
+
+* `1 ≤ T ≤ 100`
+* `1 ≤ days ≤ N ≤ 5 × 10⁴`
+* `1 ≤ weights[i] ≤ 500`
+* Containers must be shipped **in order**.
+* Each container must be shipped completely on one day.
+
+---
+
+# Approach
+
+This is a classic **Binary Search on Answer** problem.
+
+We are not searching for an element in an array.
+
+Instead, we are searching for the **minimum possible truck capacity**.
+
+---
+
+## Why Binary Search?
+
+Suppose we choose some truck capacity `C`.
+
+We can calculate how many days are required to ship all containers with capacity `C`.
+
+There are two possibilities:
+
+```text
+Capacity too small
+       ↓
+Needs more than `days`
+       ↓
+Invalid ❌
+```
+
+or:
+
+```text
+Capacity large enough
+       ↓
+Needs at most `days`
+       ↓
+Valid ✅
+```
+
+This condition is monotonic.
+
+For example:
+
+```text
+Capacity = 10 → 5 days ❌
+Capacity = 11 → 4 days ✅
+Capacity = 12 → 4 days ✅
+Capacity = 13 → 4 days ✅
+```
+
+Once a capacity becomes valid, every larger capacity will also be valid.
+
+Therefore, Binary Search can find the smallest valid capacity.
+
+---
+
+# Search Range
+
+The minimum possible capacity must be at least the weight of the heaviest container.
+
+```text
+low = max(weights)
+```
+
+Because we cannot split a container.
+
+The maximum possible capacity is the total weight of all containers.
+
+```text
+high = sum(weights)
+```
+
+With this capacity, all containers can be shipped in one day.
+
+Therefore:
+
+```text
+low = max(weights)
+high = sum(weights)
+```
+
+---
+
+# Checking a Capacity
+
+For a candidate capacity `mid`, simulate the shipment.
+
+Start with:
+
+```text
+days_used = 1
+current_load = 0
+```
+
+Process containers from left to right.
+
+If adding the current container does not exceed `mid`:
+
+```text
+current_load += weight
+```
+
+Otherwise, start a new day:
+
+```text
+days_used += 1
+current_load = weight
+```
+
+If:
+
+```text
+days_used <= days
+```
+
+then the capacity is valid.
+
+---
+
+# Algorithm
+
+For every test case:
+
+1. Set:
+
+   ```text
+   low = max(weights)
+   ```
+2. Set:
+
+   ```text
+   high = sum(weights)
+   ```
+3. While `low < high`:
+
+   * Calculate:
+
+     ```text
+     mid = (low + high) // 2
+     ```
+   * Determine how many days are required using capacity `mid`.
+4. If the required days are `≤ days`:
+
+   * `mid` is valid.
+   * Search for a smaller capacity:
+
+     ```text
+     high = mid
+     ```
+5. Otherwise:
+
+   * `mid` is too small.
+   * Increase the capacity:
+
+     ```text
+     low = mid + 1
+     ```
+6. When `low == high`, return `low`.
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+weights = [5, 8, 3, 2, 7, 4, 6]
+days = 4
+```
+
+Search range:
+
+```text
+low = max(weights) = 8
+high = sum(weights) = 35
+```
+
+Suppose we try:
+
+```text
+capacity = 11
+```
+
+Ship containers in order:
+
+```text
+Day 1:
+5
+```
+
+Cannot add `8` because:
+
+```text
+5 + 8 = 13 > 11
+```
+
+So:
+
+```text
+Day 2:
+8 + 3 = 11
+```
+
+Then:
+
+```text
+Day 3:
+2 + 7 = 9
+```
+
+And:
+
+```text
+Day 4:
+4 + 6 = 10
+```
+
+Total:
+
+```text
+4 days
+```
+
+Since:
+
+```text
+4 <= 4
+```
+
+capacity `11` is valid.
+
+Binary search continues to check whether a smaller capacity is possible.
+
+Eventually:
+
+```text
+minimum valid capacity = 11
+```
+
+---
+
+# Python Solution
+
+```python
+def can_ship(weights, days, capacity):
+    days_used = 1
+    current_load = 0
+
+    for weight in weights:
+
+        if current_load + weight <= capacity:
+            current_load += weight
+
+        else:
+            days_used += 1
+            current_load = weight
+
+    return days_used <= days
+
+
+def shipWithinDays(weights, days):
+    low = max(weights)
+    high = sum(weights)
+
+    while low < high:
+        mid = (low + high) // 2
+
+        if can_ship(weights, days, mid):
+            # Capacity works, try smaller
+            high = mid
+        else:
+            # Capacity is too small
+            low = mid + 1
+
+    return low
+
+
+# Input
+T = int(input())
+
+for _ in range(T):
+    N, days = map(int, input().split())
+    weights = list(map(int, input().split()))
+
+    print(shipWithinDays(weights, days))
+```
+
+---
+
+# Example 1
+
+### Input
+
+```text
+1
+7 4
+5 8 3 2 7 4 6
+```
+
+### Output
+
+```text
+11
+```
+
+### Explanation
+
+With capacity `11`:
+
+```text
+Day 1 → 5
+Day 2 → 8 + 3 = 11
+Day 3 → 2 + 7 = 9
+Day 4 → 4 + 6 = 10
+```
+
+All containers are delivered within `4` days.
+
+Therefore:
+
+```text
+Answer = 11
+```
+
+---
+
+# Complexity Analysis
+
+Let:
+
+* `N` = number of containers
+* `S` = sum of all container weights
+
+For each binary-search step, we scan all `N` containers.
+
+### Time Complexity
+
+```text
+O(N log S)
+```
+
+### Auxiliary Space Complexity
+
+```text
+O(1)
+```
+
+Apart from the input array.
+
+---
+
+# Key Takeaway
+
+This problem follows the important pattern:
+
+```text
+Minimum Possible Answer
+        ↓
+Binary Search on Answer
+        ↓
+Check if mid is possible
+        ↓
+   ┌─────────────┐
+   │             │
+Valid         Invalid
+   │             │
+   ↓             ↓
+Search Left   Search Right
+   │             │
+   └──────┬──────┘
+          ↓
+Smallest Valid Capacity
+```
+
+### Remember
+
+> When you need to find the **minimum value** that satisfies a condition, and the condition becomes easier as the value increases, think **Binary Search on Answer**.
