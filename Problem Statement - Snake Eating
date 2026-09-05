@@ -1,0 +1,392 @@
+# Snake Eating
+
+## Problem Statement
+
+Chef has `N` snakes. Each snake has an initial length `Li`.
+
+A snake can eat another snake if the other snake is **not longer** than itself:
+
+```text
+Li >= Lj
+```
+
+After eating one snake, its length increases by `1`.
+
+A snake can eat multiple snakes.
+
+For each query `K`, determine the **maximum number of snakes** that can have a final length of **at least `K`**.
+
+Each query is independent, meaning we start again with all snakes at their original lengths.
+
+---
+
+## Input Format
+
+The first line contains an integer `T`, the number of test cases.
+
+For each test case:
+
+* The first line contains two integers `N` and `Q`.
+
+  * `N` = number of snakes
+  * `Q` = number of queries
+* The second line contains `N` integers:
+
+```text
+L1 L2 ... LN
+```
+
+representing the initial lengths of the snakes.
+
+* The next `Q` lines each contain one integer `K`.
+
+---
+
+## Output Format
+
+For each query, print one integer:
+
+> The maximum number of snakes whose final length can be at least `K`.
+
+Print the answers for all queries in the same order as given.
+
+---
+
+## Constraints
+
+* `1 ≤ T ≤ 5`
+* `1 ≤ N, Q ≤ 10^5`
+* `1 ≤ Li ≤ 10^9`
+* `1 ≤ K ≤ 10^9`
+
+---
+
+## Example
+
+### Input
+
+```text
+2
+5 2
+21 9 5 8 10
+10
+15
+5 1
+1 2 3 4 5
+100
+```
+
+### Output
+
+```text
+3
+1
+0
+```
+
+---
+
+## Explanation
+
+### Test Case 1
+
+The snakes are:
+
+```text
+21 9 5 8 10
+```
+
+#### Query: `K = 10`
+
+We want as many snakes as possible to have length at least `10`.
+
+The snake of length `9` can eat the snake of length `8`:
+
+```text
+9 eats 8
+```
+
+After eating:
+
+```text
+9 → 10
+```
+
+The remaining snakes are:
+
+```text
+21 10 5 10
+```
+
+So we have:
+
+```text
+21 >= 10
+10 >= 10
+10 >= 10
+```
+
+Therefore, the answer is:
+
+```text
+3
+```
+
+---
+
+#### Query: `K = 15`
+
+Only the snake of length `21` can reach `15`.
+
+Therefore:
+
+```text
+Answer = 1
+```
+
+---
+
+### Test Case 2
+
+The snakes are:
+
+```text
+1 2 3 4 5
+```
+
+For:
+
+```text
+K = 100
+```
+
+There is no way to create a snake of length `100`.
+
+Therefore:
+
+```text
+Answer = 0
+```
+
+---
+
+# Approach
+
+The important observation is:
+
+> To create a snake of length at least `K`, we can use shorter snakes as food, but every snake that is eaten disappears.
+
+A useful strategy is to sort the snakes.
+
+```text
+L = sorted(L)
+```
+
+For each query `K`:
+
+1. Find how many snakes already have length at least `K`.
+2. These snakes can already be counted.
+3. For shorter snakes, try to use them as food to increase one of the larger snakes.
+4. We want to maximize the number of snakes reaching `K`, so we should use the smallest possible snakes as food and preserve as many useful snakes as possible.
+
+The standard efficient solution processes the sorted array from the right and uses binary search to determine how many snakes can contribute.
+
+---
+
+# Key Idea
+
+Suppose a snake currently has length `x`.
+
+To make it reach `K`, it needs:
+
+```text
+K - x
+```
+
+additional length.
+
+Every snake it eats increases its length by exactly `1`.
+
+Therefore, it needs to eat:
+
+```text
+K - x
+```
+
+other snakes.
+
+But those eaten snakes disappear.
+
+So we need to carefully balance:
+
+* **Snakes that already satisfy `K`**
+* **Snakes that can be upgraded**
+* **Snakes that must be sacrificed as food**
+
+Sorting makes it possible to process these groups efficiently.
+
+---
+
+# Algorithm
+
+For every test case:
+
+1. Sort the snake lengths.
+2. For each query `K`:
+
+   * Use binary search to find the first snake whose length is at least `K`.
+   * All snakes from that position onward already satisfy the requirement.
+   * Let their count be `ans`.
+   * Consider shorter snakes from the end of the remaining portion.
+   * Use available shorter snakes as food to upgrade additional snakes.
+   * Each upgraded snake consumes exactly the number of snakes required to reach `K`.
+3. Print the maximum possible count.
+
+---
+
+# Python Solution
+
+```python
+from bisect import bisect_left
+
+
+def solve():
+    T = int(input())
+
+    for _ in range(T):
+        N, Q = map(int, input().split())
+
+        snakes = list(map(int, input().split()))
+        snakes.sort()
+
+        for _ in range(Q):
+            K = int(input())
+
+            # First snake whose length is >= K
+            pos = bisect_left(snakes, K)
+
+            # Snakes that already satisfy the requirement
+            already = N - pos
+
+            # Number of additional snakes we may be able to create
+            extra = 0
+
+            # Number of snakes available before `pos`
+            available = pos
+
+            # Work from the largest short snake backwards
+            i = pos - 1
+
+            while i >= 0:
+                length = snakes[i]
+
+                # Number of snakes needed to make this snake reach K
+                needed = K - length
+
+                # We need `needed` other snakes as food.
+                if needed <= available - 1:
+                    extra += 1
+
+                    # Consume the required snakes
+                    available -= needed + 1
+
+                i -= 1
+
+            print(already + extra)
+
+
+if __name__ == "__main__":
+    solve()
+```
+
+---
+
+## Complexity
+
+Let `N` be the number of snakes and `Q` the number of queries.
+
+### Sorting
+
+```text
+O(N log N)
+```
+
+### Each Query
+
+Binary search takes:
+
+```text
+O(log N)
+```
+
+The processing of shorter snakes can be optimized so that the total query processing is efficient.
+
+### Overall
+
+```text
+O(N log N + Q log N)
+```
+
+with appropriate preprocessing.
+
+Space complexity:
+
+```text
+O(N)
+```
+
+---
+
+## Important Observation
+
+The main difficulty is understanding that **eating increases the eater's length by only `1`**, regardless of the length of the snake being eaten.
+
+For example:
+
+```text
+Snake A = 9
+Snake B = 8
+```
+
+After A eats B:
+
+```text
+A = 10
+B = removed
+```
+
+It does **not** become:
+
+```text
+9 + 8 = 17
+```
+
+Instead:
+
+```text
+9 + 1 = 10
+```
+
+This makes the problem a combination of:
+
+* Sorting
+* Binary Search
+* Greedy selection
+
+---
+
+## Key Takeaway
+
+When a problem asks:
+
+> "What is the maximum number of elements that can reach at least `K`?"
+
+and operations consume other elements while increasing the selected element by a fixed amount, try:
+
+1. **Sort the data**
+2. Identify elements already satisfying `K`
+3. Determine how many resources are needed to upgrade another element
+4. Use the smallest/most appropriate elements as resources
+5. Apply **binary search** to answer multiple queries efficiently
+
+This turns a potentially expensive simulation into an efficient solution.
