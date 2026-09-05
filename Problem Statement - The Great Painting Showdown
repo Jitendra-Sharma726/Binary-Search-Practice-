@@ -1,0 +1,516 @@
+# The Great Painting Showdown
+
+## Problem Statement
+
+You are given:
+
+* `A` painters
+* `N` wooden boards arranged in a row
+* `C[i]` = length of the `i-th` board
+* `B` = time required to paint one unit of board length
+
+Each painter follows these rules:
+
+1. A painter can paint only **consecutive boards**.
+2. A board **cannot be divided** between two painters.
+3. Every board must be painted.
+4. Painters can work simultaneously.
+
+The goal is to divide the boards among the painters so that the **maximum time taken by any painter is minimized**.
+
+Return the minimum possible painting time modulo:
+
+```text
+10000003
+```
+
+---
+
+## Example
+
+Suppose:
+
+```text
+A = 2
+B = 3
+C = [10, 10, 10, 10]
+```
+
+We can divide the boards as:
+
+```text
+Painter 1 → [10, 10] = 20 units
+Painter 2 → [10, 10] = 20 units
+```
+
+Each unit takes `3` time:
+
+```text
+20 × 3 = 60
+```
+
+Therefore, the minimum total time is:
+
+```text
+60
+```
+
+---
+
+## Input Format
+
+```text
+A B N
+C[0] C[1] ... C[N-1]
+```
+
+Where:
+
+* `A` = number of painters
+* `B` = time required to paint one unit
+* `N` = number of boards
+* `C[i]` = length of the `i-th` board
+
+---
+
+## Output Format
+
+Print the minimum possible time required to paint all boards.
+
+The answer must be calculated modulo:
+
+```text
+10000003
+```
+
+---
+
+## Constraints
+
+* `1 ≤ A ≤ 1000`
+* `1 ≤ B ≤ 10^6`
+* `1 ≤ N ≤ 10^5`
+* `1 ≤ C[i] ≤ 10^6`
+* Each painter paints only consecutive boards.
+* A board cannot be split between painters.
+
+---
+
+# Approach
+
+This is a classic:
+
+```text
+Binary Search on Answer + Greedy
+```
+
+Instead of trying every possible way to distribute the boards, we binary-search the **maximum amount of board length a painter is allowed to paint**.
+
+---
+
+## Step 1: Minimum Possible Workload
+
+A painter must be able to paint the longest board.
+
+Therefore:
+
+```text
+low = max(C)
+```
+
+For example:
+
+```text
+C = [10, 20, 30, 40]
+
+low = 40
+```
+
+We cannot choose anything smaller than `40`, because the board of length `40` must be painted by one painter.
+
+---
+
+## Step 2: Maximum Possible Workload
+
+The maximum possible workload occurs when one painter paints all boards:
+
+```text
+high = sum(C)
+```
+
+For:
+
+```text
+C = [10, 20, 30, 40]
+```
+
+we get:
+
+```text
+high = 100
+```
+
+So the answer lies between:
+
+```text
+40 and 100
+```
+
+---
+
+# Greedy Validation
+
+For every possible maximum workload, we check whether all boards can be assigned to at most `A` painters.
+
+Suppose:
+
+```text
+C = [10, 20, 30, 40]
+maximum workload = 60
+```
+
+We assign boards greedily:
+
+```text
+Painter 1 → 10 + 20 + 30 = 60
+Painter 2 → 40
+```
+
+Only 2 painters are required.
+
+Therefore, a maximum workload of `60` is possible.
+
+---
+
+# Binary Search
+
+If a maximum workload is possible:
+
+```text
+high = mid - 1
+```
+
+We try to find an even smaller workload.
+
+If it is impossible:
+
+```text
+low = mid + 1
+```
+
+We need to allow each painter to handle more board length.
+
+Eventually:
+
+```text
+low
+```
+
+will contain the minimum possible maximum workload.
+
+---
+
+# Algorithm
+
+1. Set:
+
+   ```text
+   low = max(C)
+   high = sum(C)
+   ```
+2. Binary search between `low` and `high`.
+3. For each `mid`:
+
+   * Greedily assign consecutive boards to painters.
+   * Keep adding boards while their total length does not exceed `mid`.
+   * When adding a board would exceed `mid`, use another painter.
+4. Count the number of painters required.
+5. If the required painters are `≤ A`:
+
+   * `mid` is possible.
+   * Search for a smaller value.
+6. Otherwise:
+
+   * `mid` is too small.
+   * Search for a larger value.
+7. Multiply the minimum workload by `B`.
+8. Return the result modulo `10000003`.
+
+---
+
+# Python Solution
+
+```python
+MOD = 10000003
+
+
+def can_paint(boards, max_work, painters):
+    used = 1
+    current = 0
+
+    for board in boards:
+
+        if current + board <= max_work:
+            current += board
+
+        else:
+            used += 1
+            current = board
+
+            if used > painters:
+                return False
+
+    return True
+
+
+def min_time(painters, time_per_unit, boards):
+
+    low = max(boards)
+    high = sum(boards)
+
+    while low <= high:
+
+        mid = (low + high) // 2
+
+        if can_paint(boards, mid, painters):
+            high = mid - 1
+        else:
+            low = mid + 1
+
+    return (low * time_per_unit) % MOD
+
+
+# Input
+A, B, N = map(int, input().split())
+C = list(map(int, input().split()))
+
+print(min_time(A, B, C))
+```
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+A = 2
+B = 3
+N = 4
+
+C = [10, 10, 10, 10]
+```
+
+### Initial Range
+
+```text
+low = max(C)
+    = 10
+
+high = sum(C)
+     = 40
+```
+
+Suppose we test:
+
+```text
+mid = 25
+```
+
+Greedy allocation:
+
+```text
+Painter 1 → 10 + 10 = 20
+Painter 2 → 10 + 10 = 20
+```
+
+Only 2 painters are needed.
+
+So `25` is possible.
+
+We search for a smaller value.
+
+Eventually:
+
+```text
+mid = 20
+```
+
+Allocation:
+
+```text
+Painter 1 → 10 + 10 = 20
+Painter 2 → 10 + 10 = 20
+```
+
+`20` is also possible.
+
+Therefore:
+
+```text
+minimum workload = 20
+```
+
+Each unit takes `B = 3` time:
+
+```text
+20 × 3 = 60
+```
+
+Final answer:
+
+```text
+60
+```
+
+---
+
+# Example 1
+
+### Input
+
+```text
+2 3 4
+10 10 10 10
+```
+
+### Output
+
+```text
+60
+```
+
+### Allocation
+
+```text
+Painter 1 → [10, 10] = 20
+Painter 2 → [10, 10] = 20
+```
+
+Painting time:
+
+```text
+20 × 3 = 60
+```
+
+---
+
+# Example 2
+
+### Input
+
+```text
+4 1 6
+5 2 4 6 1 3
+```
+
+### Output
+
+```text
+6
+```
+
+### Allocation
+
+```text
+Painter 1 → [5]       = 5
+Painter 2 → [2, 4]    = 6
+Painter 3 → [6]       = 6
+Painter 4 → [1, 3]    = 4
+```
+
+The maximum workload is:
+
+```text
+6
+```
+
+Since `B = 1`:
+
+```text
+6 × 1 = 6
+```
+
+Answer:
+
+```text
+6
+```
+
+---
+
+# Complexity Analysis
+
+Let:
+
+```text
+N = number of boards
+S = sum of all board lengths
+```
+
+Each binary-search iteration scans all `N` boards.
+
+### Time Complexity
+
+```text
+O(N log S)
+```
+
+### Auxiliary Space
+
+```text
+O(1)
+```
+
+The input array itself requires `O(N)` space.
+
+---
+
+# Key Takeaway
+
+The main pattern is:
+
+```text
+Binary Search on Answer
+          +
+       Greedy Check
+```
+
+We search for the minimum possible maximum workload.
+
+```text
+low  = max(C)
+high = sum(C)
+```
+
+For every candidate `mid`, ask:
+
+> Can `A` painters paint all boards if no painter is allowed to paint more than `mid` units?
+
+* **Yes** → try a smaller `mid`.
+* **No** → increase `mid`.
+
+Finally:
+
+```text
+minimum workload × B
+```
+
+gives the minimum painting time.
+
+Remember this pattern:
+
+```text
+                Search Space
+        max(board) → sum(boards)
+                    ↓
+              Binary Search
+                    ↓
+             Greedy Validation
+                    ↓
+       Minimum Maximum Workload
+                    ↓
+              × Time per Unit
+                    ↓
+                 Answer
+```
