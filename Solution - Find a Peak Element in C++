@@ -1,0 +1,26 @@
+pair<int,int> findPeakGrid(int m,int n, vector<vector<int>>& mat) {
+    int left = 0, right = n - 1;
+
+    while (left <= right) {
+        int midCol = left + (right - left) / 2;
+        int maxRow = 0;
+        for (int i = 0; i < m; i++)
+            if (mat[i][midCol] > mat[maxRow][midCol])
+                maxRow = i;
+
+        int up = (maxRow-1 >= 0) ? mat[maxRow-1][midCol] : -1;
+        int down = (maxRow+1 < m) ? mat[maxRow+1][midCol] : -1;
+        int leftN = (midCol-1 >= 0) ? mat[maxRow][midCol-1] : -1;
+        int rightN = (midCol+1 < n) ? mat[maxRow][midCol+1] : -1;
+
+        if (mat[maxRow][midCol] > up && mat[maxRow][midCol] > down &&
+            mat[maxRow][midCol] > leftN && mat[maxRow][midCol] > rightN)
+            return {maxRow, midCol};
+
+        if (leftN > mat[maxRow][midCol])
+            right = midCol - 1;
+        else
+            left = midCol + 1;
+    }
+    return {-1, -1};
+}
