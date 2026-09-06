@@ -1,0 +1,142 @@
+# Forest Gathering
+
+## Problem Statement
+
+Chef has `N` trees.
+
+Each tree has:
+
+* Initial height `H[i]`
+* Growth rate `R[i]` meters per month
+
+After `X` months, the height of tree `i` will be:
+
+```text
+H[i] + R[i] × X
+```
+
+Chef wants to collect at least `W` meters of wood.
+
+However, he can cut a tree only if its height is **at least `L` meters**.
+
+A tree must be cut completely; partial cutting is not allowed.
+
+Find the **minimum number of months** Chef needs to wait so that he can collect at least `W` meters of wood.
+
+## Input Format
+
+The first line contains three integers:
+
+```text
+N W L
+```
+
+Where:
+
+* `N` = number of trees
+* `W` = required amount of wood
+* `L` = minimum height required to cut a tree
+
+The next `N` lines contain:
+
+```text
+H[i] R[i]
+```
+
+where:
+
+* `H[i]` = initial height of tree `i`
+* `R[i]` = growth rate of tree `i`
+
+## Output Format
+
+Print one integer — the **minimum number of months** Chef must wait.
+
+## Constraints
+
+* `1 ≤ N ≤ 10⁵`
+* `1 ≤ W, L ≤ 10¹⁸`
+* `1 ≤ H[i], R[i] ≤ 10⁹`
+
+## Example
+
+### Input
+
+```text
+3 74 51
+2 2
+5 7
+2 9
+```
+
+### Output
+
+```text
+7
+```
+
+## Explanation
+
+After `6` months, the tree heights are:
+
+```text
+14 47 56
+```
+
+Only the third tree has reached the required height of `51`.
+
+Wood available:
+
+```text
+56
+```
+
+This is not enough because Chef needs `74` meters.
+
+After `7` months, the heights become:
+
+```text
+16 54 65
+```
+
+Now the second and third trees can be cut.
+
+Total wood:
+
+```text
+54 + 65 = 119
+```
+
+Since `119 ≥ 74`, Chef can fulfill the order.
+
+Therefore, the answer is:
+
+```text
+7
+```
+
+## Approach
+
+This problem can be solved using **binary search on the answer**.
+
+For a given number of months `X`:
+
+1. Calculate the height of every tree:
+
+   ```text
+   H[i] + R[i] × X
+   ```
+2. If the height is at least `L`, add it to the available wood.
+3. If the total wood is at least `W`, then `X` months is sufficient.
+4. Otherwise, Chef needs to wait longer.
+
+Because if `X` months is sufficient, then any larger number of months will also be sufficient, the condition is **monotonic**.
+
+So we can binary search for the smallest valid `X`.
+
+## Complexity
+
+* **Time:** `O(N log Answer)`
+* **Space:** `O(1)`
+
+Use a **64-bit integer type** such as `long long` in C++ because the values can be very large.
