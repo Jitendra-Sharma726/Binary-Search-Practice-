@@ -1,0 +1,148 @@
+# Circular Intervals
+
+## Problem Statement
+
+There are `M` numbers arranged in a circle:
+
+```text
+0, 1, 2, ..., M-1
+```
+
+Numbers next to each other have a distance of `1`. Since the numbers form a circle, `0` and `M-1` are also adjacent.
+
+You are given `N` non-overlapping intervals:
+
+```text
+[L1, R1], [L2, R2], ..., [LN, RN]
+```
+
+The intervals are sorted and do not overlap.
+
+You must choose **exactly one number from each interval**.
+
+Let the selected numbers be:
+
+```text
+A1, A2, ..., AN
+```
+
+Your goal is to **maximize the minimum circular distance between any two selected numbers**.
+
+## Circular Distance
+
+For two numbers `x` and `y`, their circular distance is:
+
+```text
+min(|x - y|, M - |x - y|)
+```
+
+We want to maximize the smallest distance among all selected numbers.
+
+## Input Format
+
+The first line contains two integers:
+
+```text
+M N
+```
+
+The next `N` lines contain two integers:
+
+```text
+Li Ri
+```
+
+representing the `i`-th interval.
+
+## Output Format
+
+Print a single integer — the **maximum possible minimum circular distance** between any two selected numbers.
+
+## Constraints
+
+* `1 ≤ M ≤ 10¹⁸`
+* `2 ≤ N ≤ 4 × 10⁵`
+* Intervals do not overlap.
+* Intervals are given in sorted order.
+
+## Example
+
+### Input
+
+```text
+9 3
+0 2
+3 4
+5 7
+```
+
+### Output
+
+```text
+3
+```
+
+## Explanation
+
+Choose:
+
+```text
+A1 = 0
+A2 = 3
+A3 = 6
+```
+
+The selected points are:
+
+```text
+0, 3, 6
+```
+
+Their circular distances are:
+
+```text
+distance(0, 3) = 3
+distance(3, 6) = 3
+distance(6, 0) = 3
+```
+
+So the minimum distance is `3`.
+
+It is not possible to achieve a larger minimum distance.
+
+Therefore, the answer is:
+
+```text
+3
+```
+
+## Approach
+
+This is an **answer-based binary search** problem.
+
+### Step 1: Binary Search on the Answer
+
+Suppose we want the minimum distance to be at least `D`.
+
+We check whether it is possible to select one number from every interval while maintaining a circular distance of at least `D`.
+
+### Step 2: Greedy Selection
+
+Process the intervals from left to right.
+
+For each interval, choose the earliest possible value that is at least `D` away from the previously selected value.
+
+### Step 3: Handle the Circle
+
+Because the numbers are arranged in a circle, we also need to make sure that the distance between the **last selected point** and the **first selected point** is at least `D`.
+
+If a distance `D` is possible, try a larger value.
+
+Otherwise, try a smaller value.
+
+## Complexity
+
+* **Time:** `O(N log M)`
+* **Space:** `O(N)`
+
+Because `M` can be as large as `10¹⁸`, use a **64-bit integer type** such as `long long` in C++.
