@@ -1,0 +1,57 @@
+#include <bits/stdc++.h>
+using namespace std;
+#define int long long 
+
+#define endl "\n"
+
+bool check(vector<double>& position, int N, double T, double mid) {
+    double currPos = position[N-1] + mid;
+    for(int i = N-2; i >= 0; i --) {
+        currPos -= T;
+        if(currPos > position[i] + mid) {
+            currPos = position[i] + mid;
+        }
+        else if(currPos < position[i] - mid) {
+            return false;
+        }
+    }
+    if(currPos >= 0.0) {
+        return true;
+    }
+    return false;
+}
+
+void solve() {
+    int N;
+    double T; 
+    cin >> N >> T;
+    vector<double> position(N, 0.0);
+    for(int i = 0; i < N; i ++) {
+        cin >> position[i];
+    }
+    double low = 0.0, high = 10000000000.0, ans = 0.0;
+    while((high - low) > 0.00005) {
+        double mid = (low + high)/2.0;
+        if(check(position, N, T, mid)) {
+            ans = mid;
+            high = mid;
+        }
+        else {
+            low = mid;
+        }
+    }
+    cout << ans << endl;
+}
+
+int32_t main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+    cout << fixed << setprecision(4);
+
+    int T; 
+    cin >> T;
+    while(T --) {
+        solve();
+    }
+}
