@@ -1,0 +1,57 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+void solve(){
+    int m,n,k;
+    cin>>m>>n>>k;
+    vector<pair<int,int>> v;
+    int a;
+    for(int i=0;i<m;++i){
+        cin>>a;
+        v.push_back({a,0});
+    }
+    for(int i=0;i<m;++i){
+        cin>>a;
+        v[i].second=a;
+    }
+    long ans=-1;
+    long low=0,high=INT_MAX;
+    while(low<=high){
+        long mid=low+(high-low)/2;
+        vector<int>vv;
+        for(int i=0;i<m;++i){
+            if(v[i].first>mid){
+                vv.push_back(0);
+                continue;
+            }
+            long p=mid-v[i].first;
+            long q=p/v[i].second;
+            vv.push_back(q+1);
+        }
+        sort(vv.rbegin(),vv.rend());
+        long c=0;
+        for(int i=min(m-1,n-1);i>=0;--i){
+            c+=vv[i];
+        }
+        
+        if(c>=k){
+            ans=mid;
+            high=mid-1;
+        }else{
+            low=mid+1;
+        }
+    }
+    
+    cout<<ans<<endl;
+}
+
+int main() {
+	// your code goes here
+	ios::sync_with_stdio(0); cin.tie(0);
+	int t;
+	cin>>t;
+	while(t--){
+	    solve();
+	}
+	return 0;
+}
