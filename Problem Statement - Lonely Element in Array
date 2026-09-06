@@ -1,0 +1,95 @@
+# Lonely Element in Array
+
+## Problem Statement
+
+You are given a **sorted array** of integers `nums`.
+
+Every element appears **exactly twice**, except for one element that appears **only once**.
+
+Find and return the element that appears only once.
+
+### Requirements
+
+* The array is sorted.
+* Exactly one element appears once.
+* All other elements appear exactly twice.
+* The solution must run in **O(log N)** time.
+* Use **O(1)** extra space.
+
+## Function
+
+```text
+findSingle(nums)
+```
+
+### Parameters
+
+* `nums` — A sorted integer array.
+
+### Returns
+
+* The integer that appears exactly once.
+
+## Constraints
+
+* `1 ≤ N ≤ 10⁵`
+* `0 ≤ nums[i] ≤ 10⁵`
+* `nums` is sorted in non-decreasing order.
+* Exactly one element appears once.
+* All other elements appear exactly twice.
+
+## Input Format
+
+```text
+N
+nums[0] nums[1] ... nums[N-1]
+```
+
+## Output Format
+
+Print the element that appears only once.
+
+## Example 1
+
+### Input
+
+```text
+5
+2 2 5 7 7
+```
+
+### Output
+
+```text
+5
+```
+
+### Explanation
+
+`2` and `7` appear twice, while `5` appears only once.
+
+---
+
+## Example 2
+
+### Input
+
+```text
+11
+1 1 3 3 4 4 6 6 8 9 9
+```
+
+### Output
+
+```text
+8
+```
+
+### Explanation
+
+Every element appears twice except `8`, which appears only once.
+
+## Expected Complexity
+
+* **Time:** `O(log N)`
+* **Space:** `O(1)`
