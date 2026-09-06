@@ -1,0 +1,548 @@
+# Find a Peak Element II
+
+## Problem Statement
+
+You are given a 2D matrix `mat` of size `m × n` containing positive integers.
+
+A cell is called a **peak element** if it is strictly greater than all of its adjacent cells:
+
+* Up
+* Down
+* Left
+* Right
+
+You need to find **any one peak element**.
+
+If multiple peaks exist, returning **any one of them is valid**.
+
+The answer should be returned as:
+
+```text
+[i, j]
+```
+
+where `i` is the row index and `j` is the column index.
+
+The matrix is conceptually surrounded by `-1`, so boundary cells can also be peaks. No two adjacent cells are equal.
+
+### Required Complexity
+
+The solution must run in:
+
+```text
+O(m log n)
+```
+
+or
+
+```text
+O(n log m)
+```
+
+---
+
+## Input Format
+
+The first line contains:
+
+```text
+m n
+```
+
+where:
+
+* `m` = number of rows
+* `n` = number of columns
+
+The next `m` lines contain the matrix.
+
+---
+
+## Output Format
+
+Print two space-separated integers:
+
+```text
+i j
+```
+
+representing the position of any peak element.
+
+---
+
+## Constraints
+
+```text
+1 ≤ m, n ≤ 500
+1 ≤ mat[i][j] ≤ 2.5 × 10^5
+```
+
+Additional conditions:
+
+* No two adjacent cells are equal.
+* The matrix is surrounded by `-1`.
+* At least one peak always exists.
+* Required complexity: `O(m log n)` or `O(n log m)`.
+
+---
+
+# Example 1
+
+### Input
+
+```text
+2 2
+1 4
+3 2
+```
+
+### Output
+
+```text
+0 1
+```
+
+### Explanation
+
+The matrix is:
+
+```text
+1  4
+3  2
+```
+
+Cell `(0,1)` contains `4`.
+
+Its neighbors are:
+
+```text
+Left  = 1
+Down  = 2
+```
+
+The top and right sides are outside the matrix and are treated as `-1`.
+
+Since:
+
+```text
+4 > 1
+4 > 2
+4 > -1
+```
+
+`4` is a peak.
+
+So:
+
+```text
+Answer = (0, 1)
+```
+
+Another valid answer is `(1,0)` because `3` is also a peak.
+
+---
+
+# Example 2
+
+### Input
+
+```text
+3 3
+10 20 15
+21 30 14
+7 16 32
+```
+
+### Output
+
+```text
+1 1
+```
+
+### Explanation
+
+The matrix is:
+
+```text
+10  20  15
+21  30  14
+7   16  32
+```
+
+Cell `(1,1)` contains `30`.
+
+Its neighbors are:
+
+```text
+Up    = 20
+Down  = 16
+Left  = 21
+Right = 14
+```
+
+Since:
+
+```text
+30 > 20
+30 > 16
+30 > 21
+30 > 14
+```
+
+`30` is a peak.
+
+So:
+
+```text
+Answer = (1, 1)
+```
+
+Cell `(2,2)` containing `32` is also a valid peak.
+
+---
+
+# Approach
+
+A brute-force approach would check every cell and compare it with its neighbors.
+
+That takes:
+
+```text
+O(m × n)
+```
+
+But the problem requires a faster solution.
+
+We can use **Binary Search on columns**.
+
+---
+
+## Main Idea
+
+Choose the middle column.
+
+Find the **largest element in that column**.
+
+Suppose the maximum element is at:
+
+```text
+(row, mid)
+```
+
+Now compare it with its left and right neighbors.
+
+### Case 1: It is greater than both sides
+
+If:
+
+```text
+mat[row][mid] > left
+```
+
+and
+
+```text
+mat[row][mid] > right
+```
+
+then this cell is a peak.
+
+We return:
+
+```text
+(row, mid)
+```
+
+We don't need to check the top and bottom because we selected the **maximum element of the entire column**. Therefore, it is already greater than or equal to every element in that column, and adjacent cells are guaranteed not to be equal.
+
+---
+
+### Case 2: Right Neighbor is Larger
+
+If:
+
+```text
+right > mat[row][mid]
+```
+
+then there must be a peak somewhere on the **right side**.
+
+So:
+
+```text
+low = mid + 1
+```
+
+---
+
+### Case 3: Left Neighbor is Larger
+
+If:
+
+```text
+left > mat[row][mid]
+```
+
+then there must be a peak somewhere on the **left side**.
+
+So:
+
+```text
+high = mid - 1
+```
+
+This allows us to eliminate half of the columns after every step.
+
+---
+
+# Why Does This Work?
+
+Imagine a column:
+
+```text
+Column
+  ↓
+
+  5
+  9  ← maximum
+  4
+  2
+```
+
+The maximum element of the column is `9`.
+
+If its right neighbor is larger:
+
+```text
+9  →  12
+```
+
+then we move right.
+
+Eventually, as we move toward a larger value, we must reach a cell that cannot move to an even larger neighbor.
+
+That cell is a peak.
+
+Therefore, binary search can safely eliminate half of the search space.
+
+---
+
+# Algorithm
+
+```text
+1. Set low = 0 and high = n - 1.
+
+2. While low <= high:
+   
+   a. Find the middle column:
+      mid = (low + high) // 2
+
+   b. Find the row containing the maximum value
+      in column mid.
+
+   c. Let current = mat[row][mid].
+
+   d. Get the left and right neighbors.
+      Use -1 outside the matrix.
+
+   e. If current is greater than both:
+      return [row, mid]
+
+   f. If right > current:
+      search the right half.
+
+   g. Otherwise:
+      search the left half.
+
+3. Return the found position.
+```
+
+---
+
+# Python Solution
+
+```python
+def findPeakGrid(mat):
+    m = len(mat)
+    n = len(mat[0])
+
+    low = 0
+    high = n - 1
+
+    while low <= high:
+
+        # Middle column
+        mid = (low + high) // 2
+
+        # Find maximum element in this column
+        max_row = 0
+
+        for i in range(1, m):
+            if mat[i][mid] > mat[max_row][mid]:
+                max_row = i
+
+        current = mat[max_row][mid]
+
+        # Left and right neighbors
+        left = mat[max_row][mid - 1] if mid > 0 else -1
+        right = mat[max_row][mid + 1] if mid < n - 1 else -1
+
+        # Current cell is a peak
+        if current > left and current > right:
+            return [max_row, mid]
+
+        # Move right
+        if right > current:
+            low = mid + 1
+
+        # Move left
+        else:
+            high = mid - 1
+
+
+# Input
+m, n = map(int, input().split())
+
+mat = []
+
+for _ in range(m):
+    mat.append(list(map(int, input().split())))
+
+answer = findPeakGrid(mat)
+
+print(answer[0], answer[1])
+```
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+10 20 15
+21 30 14
+7  16 32
+```
+
+There are `3` columns.
+
+### Step 1
+
+```text
+low = 0
+high = 2
+
+mid = (0 + 2) // 2
+    = 1
+```
+
+So we examine column `1`:
+
+```text
+20
+30  ← maximum
+16
+```
+
+Maximum value is:
+
+```text
+30
+```
+
+at:
+
+```text
+(row, column) = (1, 1)
+```
+
+Its neighbors are:
+
+```text
+Left  = 21
+Right = 14
+```
+
+Check:
+
+```text
+30 > 21 ✓
+30 > 14 ✓
+```
+
+Therefore, `(1,1)` is a peak.
+
+Return:
+
+```text
+1 1
+```
+
+---
+
+# Complexity
+
+For every binary-search step, we scan one complete column to find its maximum.
+
+Finding the maximum in a column takes:
+
+```text
+O(m)
+```
+
+Binary Search checks:
+
+```text
+O(log n)
+```
+
+columns.
+
+Therefore:
+
+### Time Complexity
+
+```text
+O(m log n)
+```
+
+### Space Complexity
+
+```text
+O(1)
+```
+
+excluding the input matrix.
+
+---
+
+# Key Takeaway
+
+The important trick is:
+
+> **Binary search over columns and find the maximum element in each middle column.**
+
+```text
+Choose middle column
+        ↓
+Find maximum element
+        ↓
+Compare left and right
+        ↓
+      /     \
+   Larger   Larger
+   Left     Right
+     ↓         ↓
+ Move Left  Move Right
+        ↓
+    Find Peak
+```
+
+Instead of checking every cell in `O(m × n)`, we reduce the search to:
+
+```text
+O(m log n)
+```
+
+This is a classic example of **Binary Search on a 2D matrix**.
