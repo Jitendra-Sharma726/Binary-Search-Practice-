@@ -1,0 +1,51 @@
+import sys
+from bisect import bisect_right
+
+def countLessOrEqual(matrix, mid):
+    count = 0
+    for row in matrix:
+        count += bisect_right(row, mid)
+    return count
+
+def findMedian(matrix, n, m):
+    # Minimum and Maximum possible values based on constraints
+    low = 1
+    high = 10**9
+    
+    # We need strictly more than half elements to be <= median
+    target = (n * m) // 2
+    ans = low
+    
+    while low <= high:
+        mid = (low + high) // 2
+        
+        # Count how many elements in the matrix are less than or equal to mid
+        if countLessOrEqual(matrix, mid) > target:
+            ans = mid        # mid could be our median, try to find a smaller value
+            high = mid - 1
+        else:
+            low = mid + 1    # mid is too small, shift search space right
+            
+    return ans
+
+def solve():
+    # Fast I/O to read and parse inputs efficiently
+    input_data = sys.stdin.read().split()
+    if not input_data:
+        return
+        
+    iterator = iter(input_data)
+    
+    n = int(next(iterator))
+    m = int(next(iterator))
+    
+    matrix = []
+    for _ in range(n):
+        row = [int(next(iterator)) for _ in range(m)]
+        matrix.append(row)
+        
+    result = findMedian(matrix, n, m)
+    print(result)
+
+if __name__ == '__main__':
+    solve()
