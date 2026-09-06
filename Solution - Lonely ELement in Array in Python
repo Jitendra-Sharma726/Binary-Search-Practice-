@@ -1,0 +1,39 @@
+import sys
+
+def findSingle(nums):
+    low = 0
+    high = len(nums) - 1
+    
+    while low < high:
+        mid = (low + high) // 2
+        
+        # Ensure 'mid' is always an even index
+        if mid % 2 == 1:
+            mid -= 1
+            
+        # If the even element matches its right neighbor, 
+        # the unique element must be in the right half.
+        if nums[mid] == nums[mid + 1]:
+            low = mid + 2
+        # Otherwise, the unique element is either at 'mid' or to its left.
+        else:
+            high = mid
+            
+    return nums[low]
+
+def solve():
+    # Fast I/O to handle heavy input test cases efficiently
+    input_data = sys.stdin.read().split()
+    if not input_data:
+        return
+        
+    iterator = iter(input_data)
+    
+    n = int(next(iterator))
+    nums = [int(next(iterator)) for _ in range(n)]
+    
+    result = findSingle(nums)
+    print(result)
+
+if __name__ == '__main__':
+    solve()
