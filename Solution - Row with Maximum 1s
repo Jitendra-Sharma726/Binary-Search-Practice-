@@ -1,0 +1,29 @@
+import sys
+
+def solve():
+    # Read the dimensions first
+    first_line = sys.stdin.readline()
+    if not first_line:
+        return
+    n, m = map(int, first_line.split())
+    
+    max_row_idx = -1
+    current_best_col = m - 1  # Start scanning from the rightmost column
+    
+    # Process each row one-by-one to keep memory O(M) and time ultra-fast
+    for row_idx in range(n):
+        line = sys.stdin.readline()
+        if not line:
+            continue
+        row_cells = line.split()
+        
+        # Staircase logic: If this row has a '1' at the current best column,
+        # it means it matches or beats the maximum 1s found so far.
+        while current_best_col >= 0 and row_cells[current_best_col] == '1':
+            max_row_idx = row_idx
+            current_best_col -= 1  # Move left to find the frontier of 1s
+            
+    print(max_row_idx)
+
+if __name__ == '__main__':
+    solve()
