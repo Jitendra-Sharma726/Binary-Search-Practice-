@@ -1,0 +1,544 @@
+# Median of 2 Sorted Arrays
+
+## Problem Statement
+
+You are given two sorted arrays `nums1` and `nums2`.
+
+Find the **median** of the combined sorted array.
+
+The solution must use **Binary Search** and run in:
+
+```text
+O(log(m + n))
+```
+
+### What is a Median?
+
+If the total number of elements is **odd**:
+
+```text
+Median = middle element
+```
+
+If the total number of elements is **even**:
+
+```text
+Median = (two middle elements) / 2
+```
+
+### Example
+
+For:
+
+```text
+[2, 4, 6, 8]
+```
+
+The two middle elements are `4` and `6`.
+
+Therefore:
+
+```text
+Median = (4 + 6) / 2
+       = 5.00000
+```
+
+---
+
+## Input Format
+
+The first line contains `T`, the number of test cases.
+
+For each test case:
+
+```text
+m n
+nums1
+nums2
+```
+
+Where:
+
+* `m` = size of `nums1`
+* `n` = size of `nums2`
+* Both arrays are sorted in non-decreasing order.
+* At least one array is non-empty.
+
+---
+
+## Output Format
+
+For each test case, print the median with exactly **5 decimal places**.
+
+---
+
+## Constraints
+
+```text
+1 ≤ T ≤ 1000
+0 ≤ m, n ≤ 1000
+1 ≤ m + n ≤ 2000
+-10^6 ≤ nums1[i], nums2[i] ≤ 10^6
+```
+
+---
+
+## Example
+
+### Input
+
+```text
+2
+2 3
+2 6
+1 3 5
+2 4
+10 20
+5 15 25 30
+```
+
+### Output
+
+```text
+3.00000
+17.50000
+```
+
+---
+
+## Explanation
+
+### Test Case 1
+
+```text
+nums1 = [2, 6]
+nums2 = [1, 3, 5]
+```
+
+If we merge them:
+
+```text
+[1, 2, 3, 5, 6]
+```
+
+There are 5 elements, so the middle element is:
+
+```text
+3
+```
+
+Answer:
+
+```text
+3.00000
+```
+
+### Test Case 2
+
+```text
+nums1 = [10, 20]
+nums2 = [5, 15, 25, 30]
+```
+
+Combined array:
+
+```text
+[5, 10, 15, 20, 25, 30]
+```
+
+There are 6 elements.
+
+The middle elements are:
+
+```text
+15 and 20
+```
+
+Therefore:
+
+```text
+Median = (15 + 20) / 2
+       = 17.50000
+```
+
+---
+
+# Approach
+
+A straightforward solution would be:
+
+1. Merge the two arrays.
+2. Find the middle element(s).
+
+But merging takes:
+
+```text
+O(m + n)
+```
+
+The problem requires a logarithmic solution.
+
+So instead, we use **Binary Search to find the correct partition**.
+
+---
+
+## Main Idea
+
+We divide both arrays into two parts:
+
+```text
+Left Part | Right Part
+```
+
+We want the left side to contain half of all elements.
+
+For example:
+
+```text
+nums1 = [2, 6]
+nums2 = [1, 3, 5]
+```
+
+A valid partition is:
+
+```text
+nums1: [2 | 6]
+nums2: [1, 3 | 5]
+```
+
+The left side contains:
+
+```text
+[2, 1, 3]
+```
+
+The right side contains:
+
+```text
+[6, 5]
+```
+
+The partition is correct when:
+
+```text
+max(left side) <= min(right side)
+```
+
+In this example:
+
+```text
+max(left) = 3
+min(right) = 5
+```
+
+So the partition is valid.
+
+---
+
+# Binary Search
+
+Always perform binary search on the **smaller array**.
+
+Let:
+
+```text
+A = smaller array
+B = larger array
+```
+
+Suppose we choose:
+
+```text
+cutA
+```
+
+elements from `A`.
+
+Then we need:
+
+```text
+cutB = half - cutA
+```
+
+elements from `B`.
+
+We then have:
+
+```text
+A: [ leftA | rightA ]
+
+B: [ leftB | rightB ]
+```
+
+The partition is valid if:
+
+```text
+leftA <= rightB
+and
+leftB <= rightA
+```
+
+### If `leftA > rightB`
+
+We took too many elements from `A`.
+
+Move the binary search to the left:
+
+```text
+high = cutA - 1
+```
+
+### Otherwise
+
+We need more elements from `A`.
+
+Move right:
+
+```text
+low = cutA + 1
+```
+
+---
+
+# Finding the Median
+
+Once the correct partition is found:
+
+### Odd Total Length
+
+The median is:
+
+```text
+max(leftA, leftB)
+```
+
+### Even Total Length
+
+The median is:
+
+```text
+(max(leftA, leftB) + min(rightA, rightB)) / 2
+```
+
+---
+
+# Algorithm
+
+1. Make sure `nums1` is the smaller array.
+2. Calculate the total number of elements.
+3. Binary search for a partition in the smaller array.
+4. Calculate the corresponding partition in the second array.
+5. Check whether the partition is valid.
+6. If `leftA > rightB`, move left.
+7. Otherwise, move right.
+8. When the partition is valid:
+
+   * If total length is odd, return the maximum left value.
+   * If total length is even, return the average of the two middle values.
+9. Print the result with 5 decimal places.
+
+---
+
+# Python Solution
+
+```python
+def findMedianSortedArrays(nums1, m, nums2, n):
+
+    # Always binary search on the smaller array
+    if m > n:
+        nums1, nums2 = nums2, nums1
+        m, n = n, m
+
+    total = m + n
+    half = (total + 1) // 2
+
+    low = 0
+    high = m
+
+    while low <= high:
+
+        # Partition of nums1
+        cut1 = (low + high) // 2
+
+        # Partition of nums2
+        cut2 = half - cut1
+
+        # Values around the partition
+        left1 = float("-inf") if cut1 == 0 else nums1[cut1 - 1]
+        right1 = float("inf") if cut1 == m else nums1[cut1]
+
+        left2 = float("-inf") if cut2 == 0 else nums2[cut2 - 1]
+        right2 = float("inf") if cut2 == n else nums2[cut2]
+
+        # Correct partition
+        if left1 <= right2 and left2 <= right1:
+
+            # Odd number of elements
+            if total % 2 == 1:
+                return float(max(left1, left2))
+
+            # Even number of elements
+            left_max = max(left1, left2)
+            right_min = min(right1, right2)
+
+            return (left_max + right_min) / 2.0
+
+        # Too many elements taken from nums1
+        elif left1 > right2:
+            high = cut1 - 1
+
+        # Need more elements from nums1
+        else:
+            low = cut1 + 1
+
+
+# Number of test cases
+T = int(input())
+
+for _ in range(T):
+
+    m, n = map(int, input().split())
+
+    nums1 = list(map(int, input().split()))
+    nums2 = list(map(int, input().split()))
+
+    median = findMedianSortedArrays(nums1, m, nums2, n)
+
+    print(f"{median:.5f}")
+```
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+nums1 = [2, 6]
+nums2 = [1, 3, 5]
+```
+
+Total elements:
+
+```text
+2 + 3 = 5
+```
+
+Therefore:
+
+```text
+half = (5 + 1) // 2
+     = 3
+```
+
+Suppose:
+
+```text
+cut1 = 1
+```
+
+Then:
+
+```text
+cut2 = 3 - 1
+     = 2
+```
+
+The partition becomes:
+
+```text
+nums1: [2 | 6]
+nums2: [1, 3 | 5]
+```
+
+Boundary values:
+
+```text
+left1  = 2
+right1 = 6
+
+left2  = 3
+right2 = 5
+```
+
+Check:
+
+```text
+left1 <= right2
+2 <= 5 ✓
+
+left2 <= right1
+3 <= 6 ✓
+```
+
+The partition is valid.
+
+Since the total number of elements is odd:
+
+```text
+median = max(2, 3)
+       = 3
+```
+
+Final answer:
+
+```text
+3.00000
+```
+
+---
+
+# Complexity
+
+Let:
+
+```text
+m = length of nums1
+n = length of nums2
+```
+
+We perform binary search only on the smaller array.
+
+### Time Complexity
+
+```text
+O(log(min(m, n)))
+```
+
+This satisfies the required:
+
+```text
+O(log(m + n))
+```
+
+### Space Complexity
+
+```text
+O(1)
+```
+
+No additional array is created.
+
+---
+
+# Key Takeaway
+
+The important trick is:
+
+> **Do not merge the two sorted arrays. Find the correct partition using Binary Search.**
+
+```text
+Two Sorted Arrays
+       ↓
+Choose Smaller Array
+       ↓
+Binary Search Partition
+       ↓
+Check Partition
+       ↓
+Find Middle Values
+       ↓
+Calculate Median
+```
+
+This reduces the time from **O(m + n)** to **O(log(min(m, n)))**.
