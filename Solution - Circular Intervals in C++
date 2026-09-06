@@ -1,0 +1,60 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+bool isValid(long long m, vector<array<long long, 2>>& A, long long N, long long M) {
+    long long last = A[0][0];
+    for (long long i = 1; i < N; i++) {
+        last = max(last + m, A[i][0]);
+        if (last > A[i][1])
+            return false;
+    }
+
+    long long first = last;
+
+    for (long long i = N - 2; i >= 0; i--) {
+        first = min(first - m, A[i][1]);
+        if (first < A[i][0])
+            return false;
+    }
+
+    return first + M - last >= m;
+}
+
+long long findCleanValue(long long k, vector<array<long long, 2>>& A, long long N, long long M) {
+    for (long long m = k + 1; m >= k - 1; m--) {
+        if (m > 0 && isValid(m, A, N, M))
+            return m;
+    }
+    return k;
+}
+
+int main() {
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+
+    long long l = 0;
+    long long h = pow(10L, 18);
+
+    long long N, M;
+
+    cin >> M >> N;
+    vector<array<long long, 2>> A(N);
+    for (auto& x : A)
+        cin >> x[0] >> x[1];
+
+    sort(A.begin(), A.end());
+
+    while (l < h) {
+        long long m = (l + h) >> 1;
+
+        if (isValid(m, A, N, M))
+            l = m + 1;
+        else
+            h = m - 1;
+    }
+
+    cout << findCleanValue(l, A, N, M) << endl;
+
+    return 0;
+}
