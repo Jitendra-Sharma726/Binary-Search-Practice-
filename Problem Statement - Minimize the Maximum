@@ -1,0 +1,151 @@
+# Minimize the Maximum
+
+## Problem Statement
+
+You are given an array `A` of `N` positive integers.
+
+You can perform the following operation any number of times:
+
+1. Choose an index `i` where `2 ≤ i ≤ N`.
+2. Choose an integer `X` such that `1 ≤ X ≤ A[i]`.
+3. Move `X` from `A[i]` to the previous element:
+
+   * `A[i-1] = A[i-1] + X`
+   * `A[i] = A[i] - X`
+
+Your goal is to **minimize the maximum value** present in the array.
+
+Return the minimum possible value of the maximum element.
+
+## Key Observation
+
+An element can only transfer its value **to the left**.
+
+Therefore, when checking whether the maximum value can be at most `M`, process the array from **right to left**.
+
+For each `A[i]`:
+
+* If `A[i] > M`, the extra amount must be transferred to `A[i-1]`.
+* If `A[i] ≤ M`, no transfer is required.
+
+This makes it possible to check a candidate answer efficiently using **binary search**.
+
+## Input Format
+
+The first line contains an integer `T`, the number of test cases.
+
+For each test case:
+
+```text
+N
+A[0] A[1] ... A[N-1]
+```
+
+## Output Format
+
+For each test case, print the minimum possible maximum value of the array.
+
+## Constraints
+
+* `1 ≤ T ≤ 1000`
+* `2 ≤ N ≤ 10⁵`
+* `0 ≤ A[i] ≤ 10⁹`
+* The sum of `N` over all test cases is at most `10⁵`.
+
+## Example 1
+
+### Input
+
+```text
+3
+4
+1 5 7 6
+3
+5 15 19
+4
+10 3 5 7
+```
+
+### Output
+
+```text
+5
+13
+10
+```
+
+## Explanation
+
+### Test Case 1
+
+Starting array:
+
+```text
+[1, 5, 7, 6]
+```
+
+We can move values from right to left:
+
+```text
+[1, 5, 7, 6]
+→ [1, 9, 3, 6]
+→ [5, 5, 3, 6]
+→ [5, 5, 4, 5]
+```
+
+The maximum value becomes `5`.
+
+So the answer is:
+
+```text
+5
+```
+
+### Test Case 2
+
+Starting array:
+
+```text
+[5, 15, 19]
+```
+
+We can redistribute the values:
+
+```text
+[5, 15, 19]
+→ [13, 7, 19]
+→ [13, 13, 13]
+```
+
+The minimum possible maximum value is:
+
+```text
+13
+```
+
+### Test Case 3
+
+Starting array:
+
+```text
+[10, 3, 5, 7]
+```
+
+The first element cannot receive or transfer anything to its left because there is no previous element.
+
+Therefore, the maximum can never be less than `A[0] = 10`.
+
+Answer:
+
+```text
+10
+```
+
+## Complexity
+
+Using binary search on the answer:
+
+* **Time:** `O(N log S)` per test case
+* **Space:** `O(1)`
+
+where `S` is the sum of all elements in the array.
