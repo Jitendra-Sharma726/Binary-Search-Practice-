@@ -1,0 +1,206 @@
+# Squirrel and Chestnut
+
+## Problem Statement
+
+There are `m` chestnut trees and `n` squirrels.
+
+For each tree `i`:
+
+* The first chestnut falls after `T[i]` seconds.
+* After that, one chestnut falls every `P[i]` seconds.
+
+The squirrels can choose which trees to wait under. Moving to a tree takes **zero time**, and once they choose their positions, they do not move.
+
+They need to collect at least `k` chestnuts as quickly as possible.
+
+Find the **minimum number of seconds** required to collect at least `k` chestnuts.
+
+## How Chestnuts Fall
+
+For a tree with:
+
+```text
+T[i] = 5
+P[i] = 2
+```
+
+Chestnuts fall at:
+
+```text
+5, 7, 9, 11, 13, ...
+```
+
+So, after `X` seconds, the number of chestnuts collected from this tree is:
+
+```text
+0                    if X < T[i]
+1 + (X - T[i]) / P[i]   otherwise
+```
+
+## Input Format
+
+The first line contains an integer `t`, the number of test cases.
+
+For each test case:
+
+### First line
+
+```text
+m n k
+```
+
+Where:
+
+* `m` = number of chestnut trees
+* `n` = number of squirrels
+* `k` = required number of chestnuts
+
+### Second line
+
+```text
+T[1] T[2] ... T[m]
+```
+
+The time when the first chestnut falls from each tree.
+
+### Third line
+
+```text
+P[1] P[2] ... P[m]
+```
+
+The interval between consecutive chestnuts for each tree.
+
+## Output Format
+
+For each test case, print the **minimum time in seconds** needed to collect at least `k` chestnuts.
+
+## Constraints
+
+* `1 ≤ t ≤ 20`
+* `1 ≤ m, n ≤ 10⁴`
+* `1 ≤ k ≤ 10⁷`
+* `1 ≤ T[i], P[i] ≤ 100`
+
+## Example
+
+### Input
+
+```text
+2
+3 2 5
+5 1 2
+1 2 1
+3 2 5
+5 1 2
+1 1 1
+```
+
+### Output
+
+```text
+4
+3
+```
+
+## Explanation
+
+### Test Case 1
+
+There are `3` trees and `2` squirrels.
+
+The squirrels choose **tree 2 and tree 3**.
+
+For tree 2:
+
+```text
+T = 1, P = 2
+```
+
+Chestnuts fall at:
+
+```text
+1, 3, 5, 7, ...
+```
+
+For tree 3:
+
+```text
+T = 2, P = 1
+```
+
+Chestnuts fall at:
+
+```text
+2, 3, 4, 5, ...
+```
+
+By `4` seconds:
+
+```text
+Tree 2 → 2 chestnuts
+Tree 3 → 3 chestnuts
+Total  → 5 chestnuts
+```
+
+Therefore, the answer is:
+
+```text
+4
+```
+
+### Test Case 2
+
+Again, the squirrels choose tree 2 and tree 3.
+
+This time both trees produce chestnuts every `1` second.
+
+By `3` seconds:
+
+```text
+Tree 2 → 3 chestnuts
+Tree 3 → 3 chestnuts
+Total  → 6 chestnuts
+```
+
+So they can collect at least `5` chestnuts in:
+
+```text
+3 seconds
+```
+
+## Approach
+
+This problem can be solved using **binary search on time**.
+
+For a given time `X`:
+
+1. Calculate how many chestnuts each tree produces by time `X`.
+2. Select the `n` trees that provide the most chestnuts.
+3. Check whether these trees can provide at least `k` chestnuts in total.
+4. If yes, try a smaller time.
+5. Otherwise, try a larger time.
+
+The condition is **monotonic**:
+
+> If `X` seconds is enough to collect `k` chestnuts, then any time greater than `X` will also be enough.
+
+Therefore, binary search can find the minimum possible time.
+
+## Complexity
+
+Let `m` be the number of trees.
+
+For each binary-search step:
+
+* Calculate chestnuts for all trees: `O(m)`
+* Find the best `n` trees: `O(m log n)` using sorting
+
+Overall:
+
+```text
+Time:  O(m log m log Answer)
+Space: O(m)
+```
+
+Use a **64-bit integer type** such as `long long` in C++ because the answer and calculations can become large.
