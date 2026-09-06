@@ -1,0 +1,222 @@
+# Flu Shot Lineup
+
+## Problem Statement
+
+There are `N` people standing in a line.
+
+The position of person `i` is `x[i]`, measured from the receptionist. People are given in **non-decreasing order of position**.
+
+To reduce the risk of infection, every pair of people must be at least `T` units apart.
+
+Each person can move forward or backward, but:
+
+* A person cannot move more than `D` units.
+* Nobody can move to a position less than `0`.
+
+Find the **minimum value of `D`** such that everyone can move to a new position satisfying:
+
+```text
+|x'[i] - x[i]| ≤ D
+```
+
+and for every pair of people:
+
+```text
+|x'[i] - x'[j]| ≥ T
+```
+
+where `x'[i]` is the final position of person `i`.
+
+## Input Format
+
+The first line contains an integer `K`, the number of test cases.
+
+For each test case:
+
+### First line
+
+```text
+N T
+```
+
+Where:
+
+* `N` = number of people
+* `T` = minimum required distance between two people
+
+The next `N` lines contain:
+
+```text
+x[i]
+```
+
+the initial position of each person.
+
+## Output Format
+
+For each test case, print the minimum possible value of `D`.
+
+The answer must be printed with **exactly 4 decimal places**.
+
+## Constraints
+
+* `1 ≤ K ≤ 30`
+* `1 ≤ N ≤ 10⁴`
+* `0 ≤ T ≤ 10⁶`
+* `0 ≤ x[i] ≤ 10⁶`
+* Positions are sorted in non-decreasing order.
+* Each value has at most 3 decimal places.
+
+## Example
+
+### Input
+
+```text
+3
+2 4
+1
+2
+2 2
+1
+2
+4 1
+0
+0.5
+0.6
+2.75
+```
+
+### Output
+
+```text
+2.0000
+0.5000
+1.4000
+```
+
+## Explanation
+
+### Test Case 1
+
+Initial positions:
+
+```text
+1, 2
+```
+
+The required distance is `4`.
+
+Move the people to:
+
+```text
+0, 4
+```
+
+The movements are:
+
+```text
+Person 1: |1 - 0| = 1
+Person 2: |2 - 4| = 2
+```
+
+The maximum movement is `2`.
+
+Therefore:
+
+```text
+D = 2.0000
+```
+
+### Test Case 2
+
+Initial positions:
+
+```text
+1, 2
+```
+
+The required distance is `2`.
+
+Move them to:
+
+```text
+0.5, 2.5
+```
+
+Each person moves `0.5` units.
+
+Therefore:
+
+```text
+D = 0.5000
+```
+
+### Test Case 3
+
+Initial positions:
+
+```text
+0, 0.5, 0.6, 2.75
+```
+
+The required distance is `1`.
+
+A valid arrangement is approximately:
+
+```text
+0, 1, 2, 3
+```
+
+The largest movement is:
+
+```text
+1.4
+```
+
+Therefore:
+
+```text
+D = 1.4000
+```
+
+## Approach
+
+This problem can be solved using **binary search on the answer**.
+
+We binary search for the minimum possible movement `D`.
+
+### Checking a Candidate `D`
+
+For a given `D`:
+
+1. The first person can move to any position in:
+
+   ```text
+   [max(0, x[0] - D), x[0] + D]
+   ```
+
+2. Choose the earliest possible position for the first person.
+
+3. For every next person, choose the earliest position that:
+
+   * Is at least `T` away from the previous person.
+   * Is within `D` units of their original position.
+
+4. If every person can be placed successfully, then `D` is feasible.
+
+5. Otherwise, increase `D`.
+
+Because if a particular `D` works, every larger value also works, the feasibility condition is **monotonic**.
+
+Therefore, binary search gives the minimum `D`.
+
+## Complexity
+
+For each binary-search iteration, we scan all people once.
+
+* **Time:** `O(N log Range)`
+* **Space:** `O(N)`
+
+Since the positions are at most `10⁶`, binary search converges quickly.
+
+Use `double` or `long double` for calculations involving decimal values.
