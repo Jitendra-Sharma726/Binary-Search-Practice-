@@ -1,0 +1,522 @@
+# Matrix Median
+
+## Problem Statement
+
+You are given a matrix of size `N × M`.
+
+The matrix has an important property:
+
+> **Every row is sorted in non-decreasing order.**
+
+You need to find the **median** of all elements in the matrix.
+
+The total number of elements `N × M` is guaranteed to be **odd**, so there is always one middle element.
+
+### Example
+
+```text
+Matrix:
+
+1 4 9
+2 5 6
+3 7 8
+```
+
+If we sort all elements:
+
+```text
+1 2 3 4 5 6 7 8 9
+```
+
+The middle element is:
+
+```text
+5
+```
+
+Therefore, the median is `5`.
+
+---
+
+## Input Format
+
+```text
+N M
+row1
+row2
+...
+rowN
+```
+
+Where:
+
+* `N` = number of rows
+* `M` = number of columns
+* Each row contains `M` sorted integers.
+
+---
+
+## Output Format
+
+Print a single integer — the **median** of the matrix.
+
+---
+
+## Constraints
+
+* `1 ≤ N, M ≤ 10^5`
+* `1 ≤ N × M ≤ 10^6`
+* `1 ≤ matrix[i][j] ≤ 10^9`
+* `N × M` is odd
+* Every row is sorted in non-decreasing order.
+
+---
+
+# Approach
+
+A simple solution would be:
+
+1. Put all matrix elements into one array.
+2. Sort the array.
+3. Return the middle element.
+
+But sorting all elements can be expensive.
+
+Instead, we use:
+
+```text
+Binary Search on Answer
+```
+
+We binary-search the **value** of the median.
+
+---
+
+# Key Idea
+
+Suppose we choose a number `x`.
+
+We can count how many matrix elements are:
+
+```text
+≤ x
+```
+
+Because every row is sorted, we can use binary search in each row to find this count efficiently.
+
+Let:
+
+```text
+total = N × M
+```
+
+The position of the median is:
+
+```text
+(total + 1) / 2
+```
+
+Since `total` is odd.
+
+For example:
+
+```text
+N × M = 9
+
+median position = (9 + 1) / 2
+                = 5
+```
+
+So we need the smallest value `x` such that:
+
+```text
+count(elements ≤ x) >= median_position
+```
+
+That value is the median.
+
+---
+
+# Search Range
+
+The smallest possible value is the minimum element in the matrix.
+
+Since every row is sorted:
+
+```text
+low = minimum of all row[0]
+```
+
+The largest possible value is the maximum element:
+
+```text
+high = maximum of all row[M-1]
+```
+
+So:
+
+```text
+low  = min(matrix[i][0])
+high = max(matrix[i][M-1])
+```
+
+---
+
+# Counting Elements
+
+For every candidate `mid`, we count how many elements are `≤ mid`.
+
+Because each row is sorted, we can use binary search.
+
+For example:
+
+```text
+Row = [1, 4, 9]
+mid = 5
+```
+
+Elements `≤ 5` are:
+
+```text
+1, 4
+```
+
+So this row contributes:
+
+```text
+2
+```
+
+We repeat this for every row.
+
+---
+
+# Binary Search Logic
+
+Suppose:
+
+```text
+count <= mid >= required
+```
+
+Then `mid` could be the median.
+
+We try a smaller value:
+
+```text
+high = mid - 1
+```
+
+Otherwise:
+
+```text
+count < required
+```
+
+We need a larger value:
+
+```text
+low = mid + 1
+```
+
+At the end:
+
+```text
+low == high
+```
+
+and that value is the median.
+
+---
+
+# Algorithm
+
+1. Calculate:
+
+   ```text
+   required = (N × M + 1) // 2
+   ```
+2. Set:
+
+   ```text
+   low = minimum first element among all rows
+   high = maximum last element among all rows
+   ```
+3. While `low <= high`:
+
+   * Calculate:
+
+     ```text
+     mid = (low + high) // 2
+     ```
+   * Count the number of elements `≤ mid`.
+   * If the count is at least `required`:
+
+     * Store `mid` as a possible answer.
+     * Search left.
+   * Otherwise:
+
+     * Search right.
+4. Return the final answer.
+
+---
+
+# Python Solution
+
+```python
+from bisect import bisect_right
+
+
+def findMedian(matrix, n, m):
+
+    # Position of the median
+    required = (n * m + 1) // 2
+
+    # Minimum and maximum possible values
+    low = min(row[0] for row in matrix)
+    high = max(row[-1] for row in matrix)
+
+    while low <= high:
+
+        mid = (low + high) // 2
+
+        # Count elements <= mid
+        count = 0
+
+        for row in matrix:
+            count += bisect_right(row, mid)
+
+        # Enough elements are <= mid
+        if count >= required:
+            high = mid - 1
+
+        # Not enough elements
+        else:
+            low = mid + 1
+
+    return low
+
+
+# Input
+n, m = map(int, input().split())
+
+matrix = []
+
+for _ in range(n):
+    matrix.append(list(map(int, input().split())))
+
+print(findMedian(matrix, n, m))
+```
+
+---
+
+# Dry Run
+
+Consider:
+
+```text
+1 4 9
+2 5 6
+3 7 8
+```
+
+There are:
+
+```text
+N × M = 3 × 3 = 9
+```
+
+elements.
+
+Therefore:
+
+```text
+required = (9 + 1) // 2
+         = 5
+```
+
+We need the smallest value having at least `5` elements smaller than or equal to it.
+
+### Try `mid = 5`
+
+Count elements `≤ 5`:
+
+```text
+Row 1 → [1, 4]     → 2
+Row 2 → [2, 5]     → 2
+Row 3 → [3]        → 1
+```
+
+Total:
+
+```text
+2 + 2 + 1 = 5
+```
+
+We have enough elements.
+
+So `5` can be the median.
+
+We search for something smaller.
+
+Eventually, values smaller than `5` do not have at least `5` elements `≤ value`.
+
+Therefore:
+
+```text
+Median = 5
+```
+
+---
+
+# Example 1
+
+### Input
+
+```text
+3 3
+1 4 9
+2 5 6
+3 7 8
+```
+
+### Output
+
+```text
+5
+```
+
+### Sorted Elements
+
+```text
+1 2 3 4 5 6 7 8 9
+```
+
+Middle element:
+
+```text
+5
+```
+
+---
+
+# Example 2
+
+### Input
+
+```text
+3 3
+10 20 30
+5 15 25
+1 2 3
+```
+
+### Output
+
+```text
+10
+```
+
+### Sorted Elements
+
+```text
+1 2 3 5 10 15 20 25 30
+```
+
+Middle element:
+
+```text
+10
+```
+
+---
+
+# Why This Works
+
+For any value `x`, we can determine how many matrix elements are `≤ x`.
+
+As `x` increases, this count can only increase:
+
+```text
+x increases
+     ↓
+number of elements ≤ x never decreases
+```
+
+This monotonic behavior allows us to apply binary search.
+
+We find the **smallest value** for which at least half of the elements are less than or equal to it.
+
+That value is exactly the median.
+
+---
+
+# Complexity Analysis
+
+Let:
+
+```text
+N = number of rows
+M = number of columns
+V = range of possible values
+```
+
+For each binary-search step, we perform a binary search in every row.
+
+### Time Complexity
+
+```text
+O(N × log(M) × log(V))
+```
+
+### Auxiliary Space
+
+```text
+O(1)
+```
+
+excluding the input matrix.
+
+---
+
+# Key Takeaway
+
+The important pattern is:
+
+```text
+Binary Search on Answer
+        +
+Binary Search in Each Row
+```
+
+Instead of sorting all `N × M` elements, we search for the median value.
+
+For each candidate:
+
+```text
+mid
+ ↓
+Count elements ≤ mid
+ ↓
+Is count >= (N × M + 1) / 2?
+```
+
+If yes:
+
+```text
+Search smaller values
+```
+
+If no:
+
+```text
+Search larger values
+```
+
+Finally:
+
+```text
+low == high == Median
+```
+
+This is a powerful technique for finding order statistics in a **row-wise sorted matrix** without explicitly flattening and sorting it.
