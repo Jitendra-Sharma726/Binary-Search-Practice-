@@ -1,0 +1,45 @@
+import sys
+
+def isValid(A, target):
+    prefix_sum = 0
+    for i, num in enumerate(A):
+        prefix_sum += num
+        # The prefix capacity at target cannot hold more than (i + 1) * target
+        if prefix_sum > (i + 1) * target:
+            return False
+    return True
+
+def solve():
+    input_data = sys.stdin.read().split()
+    if not input_data:
+        return
+        
+    iterator = iter(input_data)
+    
+    t = int(next(iterator))
+    out = []
+    
+    for _ in range(t):
+        n = int(next(iterator))
+        A = [int(next(iterator)) for _ in range(n)]
+        
+        # Binary search bounds
+        low = A[0]  # A[0] can never decrease
+        high = max(A)
+        ans = high
+        
+        while low <= high:
+            mid = (low + high) // 2
+            
+            if isValid(A, mid):
+                ans = mid
+                high = mid - 1  # Try to find a lower maximum value
+            else:
+                low = mid + 1   # mid is too small, increase the threshold
+                
+        out.append(str(ans))
+        
+    sys.stdout.write('\n'.join(out) + '\n')
+
+if __name__ == '__main__':
+    solve()
